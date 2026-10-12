@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Coins, Layers, Trophy, Wallet } from "lucide-react";
 import { auth, ubuntuDb } from "../../lib/supabase";
-import { isAureusAdmin } from "../../lib/aureusMember";
+import { loadUbuntuStaffMe } from "../../lib/ubuntuAdminClient";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardPage,
@@ -62,11 +62,12 @@ function DashboardPage() {
 
       if (current.identitySource === "aureus") {
         setAureusReadOnlyNote(true);
-        setIsAdmin(isAureusAdmin(current.profile));
         setDisplayName(current.profile?.username || current.user.email || "Member");
       } else {
         setDisplayName(current.user.email || "Member");
       }
+      const staff = await loadUbuntuStaffMe();
+      setIsAdmin(staff.ok && staff.roles.length > 0);
 
       let token = typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") : null;
       if (!token) {

@@ -63,11 +63,16 @@ export function assertRecordedPaymentForConfirm({ event, order, paymentId, kind 
   return { ok: true, paymentId: String(paymentId), orderId: String(order.id) }
 }
 
-export function recordPaymentEvent({ orderId, kind, paymentId, amount, provider, order, currency } = {}) {
-  const normalizedKind = String(kind || "").toUpperCase()
-  if (normalizedKind !== "CARD" && normalizedKind !== "FRACTION") {
-    throw new Error("kind must be CARD or FRACTION")
+export function assertPaymentKind(kind) {
+  const value = String(kind || "").toUpperCase()
+  if (value !== "CARD" && value !== "FRACTION" && value !== "MARKETPLACE") {
+    throw new Error("kind must be CARD, FRACTION, or MARKETPLACE")
   }
+  return value
+}
+
+export function recordPaymentEvent({ orderId, kind, paymentId, amount, provider, order, currency } = {}) {
+  const normalizedKind = assertPaymentKind(kind)
   const id = String(orderId || "").trim()
   const payId = String(paymentId || "").trim()
   if (!id) throw new Error("orderId is required")

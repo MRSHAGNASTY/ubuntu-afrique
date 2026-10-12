@@ -1,17 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { applyRankPromotion, evaluateRankQualification } from "../../../../lib/rankEngine.mjs"
 import { persistRankPromotion } from "../../../../lib/persistRank.server"
+import { authorizeUbuntuStaff } from "../../../../lib/ubuntuAdminAuthorize.server"
 import { getUbuntuServerClient } from "../../../../lib/ubuntuServer.server"
 
-function authorize(request: Request, body: Record<string, unknown>) {
-  const expected = String(process.env.UA_COMMERCE_CONFIRM_SECRET || "")
-  if (!expected) return { ok: false as const, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
-  const header = request.headers.get("x-ua-commerce-confirm") || ""
-  const fromBody = String(body.confirmSecret || "")
-  if (header !== expected && fromBody !== expected) {
-    return { ok: false as const, status: 401, error: "Confirm secret required" }
-  }
-  return { ok: true as const }
+async function authorize(request: Request, body: Record<string, unknown>) {
+  return authorizeUbuntuStaff(request, body, "SUPPORT")
 }
 
 function clientSuppliedRank(body: Record<string, unknown>) {
@@ -36,7 +30,7 @@ export const Route = createFileRoute("/api/admin/ranks/promote")({
     handlers: {
       POST: async ({ request }) => {
         const body = await request.json().catch(() => ({}))
-        const auth = authorize(request, body as Record<string, unknown>)
+        const auth = await authorize(request, body as Record<string, unknown>)
         if (!auth.ok) {
           return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
         }

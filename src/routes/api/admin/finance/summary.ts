@@ -1,16 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { authorizeUbuntuStaff } from "../../../../lib/ubuntuAdminAuthorize.server"
 import { getUbuntuServerClient } from "../../../../lib/ubuntuServer.server"
 import { loadFinanceSummary } from "../../../../lib/persistFinanceRead.server"
 
-function authorize(request: Request, url: URL) {
-  const expected = String(process.env.UA_COMMERCE_CONFIRM_SECRET || "")
-  if (!expected) return { ok: false, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
-  const header = request.headers.get("x-ua-commerce-confirm") || ""
-  const fromQuery = String(url.searchParams.get("confirmSecret") || "")
-  if (header !== expected && fromQuery !== expected) {
-    return { ok: false, status: 401, error: "Confirm secret required" }
-  }
-  return { ok: true }
+async function authorize(request: Request, url: URL) {
+  return authorizeUbuntuStaff(request, { confirmSecret: String(url.searchParams.get("confirmSecret") || "") }, "FINANCE")
 }
 
 function rejectClientCommerceFields(url: URL) {
@@ -31,7 +25,7 @@ export const Route = createFileRoute("/api/admin/finance/summary")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url)
-        const auth = authorize(request, url)
+        const auth = await authorize(request, url)
         if (!auth.ok) {
           return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
         }

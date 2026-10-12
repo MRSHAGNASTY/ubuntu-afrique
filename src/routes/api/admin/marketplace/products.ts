@@ -1,17 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { authorizeUbuntuStaff } from "../../../../lib/ubuntuAdminAuthorize.server"
 import { getUbuntuServerClient } from "../../../../lib/ubuntuServer.server"
 import { loadMarketplaceProducts, persistMarketplaceProduct } from "../../../../lib/persistMarketplaceSettlement.server"
 
-function authorize(request: Request, url: URL, body: Record<string, unknown> = {}) {
-  const expected = String(process.env.UA_COMMERCE_CONFIRM_SECRET || "")
-  if (!expected) return { ok: false, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
-  const header = request.headers.get("x-ua-commerce-confirm") || ""
-  const fromQuery = String(url.searchParams.get("confirmSecret") || "")
-  const fromBody = String(body.confirmSecret || "")
-  if (header !== expected && fromQuery !== expected && fromBody !== expected) {
-    return { ok: false, status: 401, error: "Confirm secret required" }
-  }
-  return { ok: true }
+async function authorize(request: Request, url: URL, body: Record<string, unknown> = {}) {
+  return authorizeUbuntuStaff(request, {
+    confirmSecret: String(body.confirmSecret || url.searchParams.get("confirmSecret") || ""),
+  }, "MARKETPLACE")
 }
 
 function rejectClientCommerce(url: URL, body: Record<string, unknown> = {}) {
@@ -41,7 +36,7 @@ export const Route = createFileRoute("/api/admin/marketplace/products")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url)
-        const auth = authorize(request, url)
+        const auth = await authorize(request, url)
         if (!auth.ok) return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
         const rejected = rejectClientCommerce(url)
         if (!rejected.ok) return Response.json({ ok: false, error: rejected.error, checkoutEnabled: false }, { status: 400 })
@@ -68,7 +63,7 @@ export const Route = createFileRoute("/api/admin/marketplace/products")({
       POST: async ({ request }) => {
         const url = new URL(request.url)
         const body = await request.json().catch(() => ({})) as Record<string, unknown>
-        const auth = authorize(request, url, body)
+        const auth = await authorize(request, url, body)
         if (!auth.ok) return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
         const rejected = rejectClientCommerce(url, body)
         if (!rejected.ok) return Response.json({ ok: false, error: rejected.error, checkoutEnabled: false }, { status: 400 })

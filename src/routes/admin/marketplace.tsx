@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage, ubuntuStaffHeaders } from "../../lib/ubuntuAdminClient"
 
 export const Route = createFileRoute("/admin/marketplace")({
   component: AdminMarketplacePage,
@@ -31,24 +30,20 @@ function AdminMarketplacePage() {
   }, [])
 
   async function gate() {
-    const current = await auth.getCurrentUser()
-    if (!current.user || current.identitySource !== "aureus" || !isAureusAdmin(current.profile)) {
-      navigate({ to: "/auth/login" })
+    const me = await gateUbuntuAdminPage(navigate, "MARKETPLACE")
+    if (!me) return
+    if (!me.allowed) {
+      setError(me.error)
       return
     }
     setAllowed(true)
   }
 
   async function load() {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setError("Confirm secret required")
-      return
-    }
     setBusy(true)
     setError("")
     try {
-      const headers = { "x-ua-commerce-confirm": secret }
+      const headers = await ubuntuStaffHeaders(confirmSecret)
       const [companyRes, productRes, mediaRes] = await Promise.all([
         fetch("/api/admin/marketplace/companies", { headers }),
         fetch("/api/admin/marketplace/products", { headers }),
@@ -72,18 +67,13 @@ function AdminMarketplacePage() {
   }
 
   async function post(path: string, body: Record<string, string>) {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setError("Confirm secret required")
-      return
-    }
     setBusy(true)
     setError("")
     try {
       const res = await fetch(path, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-ua-commerce-confirm": secret },
-        body: JSON.stringify({ ...body, confirmSecret: secret }),
+        headers: { "Content-Type": "application/json", ...(await ubuntuStaffHeaders(confirmSecret)) },
+        body: JSON.stringify({ ...body, confirmSecret: confirmSecret.trim() }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {
@@ -99,18 +89,13 @@ function AdminMarketplacePage() {
   }
 
   async function archive(mediaId: string) {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setError("Confirm secret required")
-      return
-    }
     setBusy(true)
     setError("")
     try {
       const res = await fetch("/api/admin/marketplace/media", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", "x-ua-commerce-confirm": secret },
-        body: JSON.stringify({ mediaId, confirmSecret: secret }),
+        headers: { "Content-Type": "application/json", ...(await ubuntuStaffHeaders(confirmSecret)) },
+        body: JSON.stringify({ mediaId, confirmSecret: confirmSecret.trim() }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {

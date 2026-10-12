@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage, ubuntuStaffHeaders } from "../../lib/ubuntuAdminClient"
 
 export const Route = createFileRoute("/admin/reports")({
   component: AdminReportsPage,
@@ -23,20 +22,16 @@ function AdminReportsPage() {
   }, [])
 
   async function gate() {
-    const current = await auth.getCurrentUser()
-    if (!current.user || current.identitySource !== "aureus" || !isAureusAdmin(current.profile)) {
-      navigate({ to: "/auth/login" })
+    const me = await gateUbuntuAdminPage(navigate, "FINANCE")
+    if (!me) return
+    if (!me.allowed) {
+      setError(me.error)
       return
     }
     setAllowed(true)
   }
 
   async function load() {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setError("Confirm secret required")
-      return
-    }
     setBusy(true)
     setError("")
     try {
@@ -46,7 +41,7 @@ function AdminReportsPage() {
         params.set("to", to)
       }
       const res = await fetch(`/api/admin/reports?${params.toString()}`, {
-        headers: { "x-ua-commerce-confirm": secret },
+        headers: await ubuntuStaffHeaders(confirmSecret),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {

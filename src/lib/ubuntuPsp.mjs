@@ -2,6 +2,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto"
 import {
   assertPaymentCurrency,
+  assertPaymentKind,
   assertPaymentMatchesOrder,
   recordPaymentEvent,
 } from "./paymentAdapter.mjs"
@@ -31,10 +32,7 @@ export function assertUbuntuPspSecret(secret) {
 }
 
 export function canonicalPspPayload(input) {
-  const kind = String(input?.kind || "").toUpperCase()
-  if (kind !== "CARD" && kind !== "FRACTION") {
-    throw new Error("kind must be CARD or FRACTION")
-  }
+  const kind = assertPaymentKind(input?.kind)
   return JSON.stringify({
     amount: String(input?.amount ?? "").trim(),
     currency: assertPaymentCurrency(input?.currency),

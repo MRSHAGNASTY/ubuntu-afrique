@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin, type AureusMemberProfile } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage } from "../../lib/ubuntuAdminClient"
 
 export const Route = createFileRoute("/admin/")({
   component: AdminPage,
@@ -20,7 +19,7 @@ const DESKS = [
 
 function AdminPage() {
   const navigate = useNavigate()
-  const [profile, setProfile] = useState<AureusMemberProfile | null>(null)
+  const [profile, setProfile] = useState<{ userId: string; username: string; email: string; roles: string[] } | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
 
@@ -30,17 +29,13 @@ function AdminPage() {
 
   async function loadAdmin() {
     try {
-      const current = await auth.getCurrentUser()
-      if (!current.user || current.identitySource !== "aureus") {
-        navigate({ to: "/auth/login" })
+      const me = await gateUbuntuAdminPage(navigate)
+      if (!me) return
+      if (!me.allowed) {
+        setError(me.error)
         return
       }
-      const member = current.profile
-      if (!isAureusAdmin(member)) {
-        setError("This account is not an administrator.")
-        return
-      }
-      setProfile(member)
+      setProfile({ userId: me.userId, username: me.username, email: me.email, roles: me.roles })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load admin profile")
     } finally {
@@ -72,16 +67,17 @@ function AdminPage() {
           <div className="space-y-6">
             <h1 className="font-display text-3xl font-bold">Ubuntu Afrique administration</h1>
             <p className="text-muted-foreground">
-              Desks use the Preview confirm secret or an Ubuntu role (FINANCE, KYC, CARD, SHARE, MARKETPLACE, SUPPORT).
-              Ubuntu Afrique does not write Aureus tables. Marketplace and NFT stay closed.
+              Desks use ua_admin_roles (FINANCE, KYC, CARD, SHARE, MARKETPLACE, SUPPORT).
+              Ubuntu Afrique does not write Aureus tables. NFT buy stays 403.
             </p>
             <div className="rounded-2xl border border-border bg-card p-6 space-y-3">
-              <Row label="Aureus identity (read-only)" value={String(profile.id)} />
+              <Row label="Ubuntu user" value={String(profile.userId)} />
               <Row label="Username" value={profile.username} />
               <Row label="Email" value={profile.email} />
+              <Row label="Roles" value={profile.roles.join(" ")} />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
-              {DESKS.map((desk) => (
+              {DESKS.filter((desk) => profile.roles.includes(desk.role)).map((desk) => (
                 <Link
                   key={desk.to}
                   to={desk.to}

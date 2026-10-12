@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage, ubuntuStaffHeaders } from "../../lib/ubuntuAdminClient"
 
 export const Route = createFileRoute("/admin/kyc")({
   component: AdminKycPage,
@@ -22,25 +21,25 @@ function AdminKycPage() {
   }, [])
 
   async function gate() {
-    const current = await auth.getCurrentUser()
-    if (!current.user || current.identitySource !== "aureus" || !isAureusAdmin(current.profile)) {
-      navigate({ to: "/auth/login" })
+    const me = await gateUbuntuAdminPage(navigate, "KYC")
+    if (!me) return
+    if (!me.allowed) {
+      setError(me.error)
       return
     }
     setAllowed(true)
   }
 
   async function load() {
-    const secret = confirmSecret.trim()
-    if (!secret || !userId.trim()) {
-      setError("Confirm secret and Ubuntu userId are required")
+    if (!userId.trim()) {
+      setError("Ubuntu userId is required")
       return
     }
     setBusy(true)
     setError("")
     try {
       const res = await fetch(`/api/admin/kyc/profile?userId=${encodeURIComponent(userId.trim())}`, {
-        headers: { "x-ua-commerce-confirm": secret },
+        headers: await ubuntuStaffHeaders(confirmSecret),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {
@@ -57,9 +56,8 @@ function AdminKycPage() {
   }
 
   async function review(decision: "COMPLETED" | "REJECTED") {
-    const secret = confirmSecret.trim()
-    if (!secret || !userId.trim()) {
-      setError("Confirm secret and Ubuntu userId are required")
+    if (!userId.trim()) {
+      setError("Ubuntu userId is required")
       return
     }
     if (decision === "REJECTED" && !reason.trim()) {
@@ -71,12 +69,12 @@ function AdminKycPage() {
     try {
       const res = await fetch("/api/admin/kyc/review", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-ua-commerce-confirm": secret },
+        headers: { "Content-Type": "application/json", ...(await ubuntuStaffHeaders(confirmSecret)) },
         body: JSON.stringify({
           userId: userId.trim(),
           decision,
           reason: reason.trim() || undefined,
-          confirmSecret: secret,
+          confirmSecret: confirmSecret.trim(),
         }),
       })
       const json = await res.json()

@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage, ubuntuStaffHeaders } from "../../lib/ubuntuAdminClient"
 
 export const Route = createFileRoute("/admin/ranks")({
   component: AdminRanksPage,
@@ -21,26 +20,26 @@ function AdminRanksPage() {
   }, [])
 
   async function gate() {
-    const current = await auth.getCurrentUser()
-    if (!current.user || current.identitySource !== "aureus" || !isAureusAdmin(current.profile)) {
-      navigate({ to: "/auth/login" })
+    const me = await gateUbuntuAdminPage(navigate, "SUPPORT")
+    if (!me) return
+    if (!me.allowed) {
+      setError(me.error)
       return
     }
     setAllowed(true)
   }
 
   async function loadProgress() {
-    const secret = confirmSecret.trim()
     const id = userId.trim()
-    if (!secret || !id) {
-      setError("Confirm secret and Ubuntu userId are required")
+    if (!id) {
+      setError("Ubuntu userId is required")
       return
     }
     setBusy(true)
     setError("")
     try {
       const res = await fetch(`/api/admin/ranks/progress?userId=${encodeURIComponent(id)}`, {
-        headers: { "x-ua-commerce-confirm": secret },
+        headers: await ubuntuStaffHeaders(confirmSecret),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {
@@ -57,10 +56,9 @@ function AdminRanksPage() {
   }
 
   async function promote() {
-    const secret = confirmSecret.trim()
     const id = userId.trim()
-    if (!secret || !id) {
-      setError("Confirm secret and Ubuntu userId are required")
+    if (!id) {
+      setError("Ubuntu userId is required")
       return
     }
     setBusy(true)
@@ -68,8 +66,8 @@ function AdminRanksPage() {
     try {
       const res = await fetch("/api/admin/ranks/promote", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-ua-commerce-confirm": secret },
-        body: JSON.stringify({ userId: id, confirmSecret: secret }),
+        headers: { "Content-Type": "application/json", ...(await ubuntuStaffHeaders(confirmSecret)) },
+        body: JSON.stringify({ userId: id, confirmSecret: confirmSecret.trim() }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {

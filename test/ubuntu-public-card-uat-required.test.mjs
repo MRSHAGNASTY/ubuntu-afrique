@@ -20,5 +20,5 @@ test("public CARD UAT runner is Ubuntu-only pending and does not confirm", {
   assert.doesNotMatch(source, /vercel --prod/)
   assert.doesNotMatch(source, /fgubaqoftdeefcakejwu/)
   assert.match(source, /nft_marketplace_enabled/)
-  assert.equal(pkg.version, "0.1.63")
+  assert.equal(pkg.version, "0.1.64")
 })

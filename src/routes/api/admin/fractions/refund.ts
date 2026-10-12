@@ -3,17 +3,11 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { confirmCommercePayment, orderFromFractionRow, reverseFractionOrder } from "../../../../lib/commerceOrders.mjs"
 import { addMoney, formatMoney2, parseMoney } from "../../../../lib/money.mjs"
 import { persistFractionRefund } from "../../../../lib/persistRefund.server"
+import { authorizeUbuntuStaff } from "../../../../lib/ubuntuAdminAuthorize.server"
 import { getUbuntuServerClient, loadGapCoverMembers } from "../../../../lib/ubuntuServer.server"
 
-function authorize(request: Request, body: Record<string, unknown>) {
-  const expected = String(process.env.UA_COMMERCE_CONFIRM_SECRET || "")
-  if (!expected) return { ok: false as const, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
-  const header = request.headers.get("x-ua-commerce-confirm") || ""
-  const fromBody = String(body.confirmSecret || "")
-  if (header !== expected && fromBody !== expected) {
-    return { ok: false as const, status: 401, error: "Confirm secret required" }
-  }
-  return { ok: true as const }
+async function authorize(request: Request, body: Record<string, unknown>) {
+  return authorizeUbuntuStaff(request, body, "SHARE")
 }
 
 function closed(body: Record<string, unknown>, status = 200) {
@@ -42,7 +36,7 @@ export const Route = createFileRoute("/api/admin/fractions/refund")({
           parsed && typeof parsed === "object" && !Array.isArray(parsed)
             ? parsed as Record<string, unknown>
             : {}
-        const auth = authorize(request, body)
+        const auth = await authorize(request, body)
         if (!auth.ok) {
           return closed({ ok: false, error: auth.error }, auth.status)
         }

@@ -1,18 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { authorizeUbuntuStaff } from "../../../../lib/ubuntuAdminAuthorize.server"
 import { getUbuntuServerClient } from "../../../../lib/ubuntuServer.server"
 import {
   loadMarketplaceCompanies,
   persistMarketplaceCompany,
 } from "../../../../lib/persistMarketplaceCompany.server"
 
-function authorize(request: Request, secret: string) {
-  const expected = String(process.env.UA_COMMERCE_CONFIRM_SECRET || "")
-  if (!expected) return { ok: false as const, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
-  const header = request.headers.get("x-ua-commerce-confirm") || ""
-  if (header !== expected && secret !== expected) {
-    return { ok: false as const, status: 401, error: "Confirm secret required" }
-  }
-  return { ok: true as const }
+async function authorize(request: Request, secret: string) {
+  return authorizeUbuntuStaff(request, { confirmSecret: secret }, "MARKETPLACE")
 }
 
 function rejectClientCommerceFields(source: { has: (key: string) => boolean }) {
@@ -50,7 +45,7 @@ export const Route = createFileRoute("/api/admin/marketplace/companies")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url)
-        const auth = authorize(request, String(url.searchParams.get("confirmSecret") || ""))
+        const auth = await authorize(request, String(url.searchParams.get("confirmSecret") || ""))
         if (!auth.ok) {
           return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
         }
@@ -88,7 +83,7 @@ export const Route = createFileRoute("/api/admin/marketplace/companies")({
 
       POST: async ({ request }) => {
         const body = (await request.json().catch(() => ({}))) as Record<string, unknown>
-        const auth = authorize(request, String(body.confirmSecret || ""))
+        const auth = await authorize(request, String(body.confirmSecret || ""))
         if (!auth.ok) {
           return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
         }

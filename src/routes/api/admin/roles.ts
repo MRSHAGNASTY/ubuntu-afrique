@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { loadAdminRoles, persistAdminRoleAssign } from "../../../lib/persistKyc.server"
-import { authorizeUbuntuStaff } from "../../../lib/ubuntuAdminAuthorize.server"
+import { authorizeUbuntuStaff, resolveUbuntuStaffSession } from "../../../lib/ubuntuAdminAuthorize.server"
 import { loadUbuntuUser } from "../../../lib/ubuntuServer.server"
 
 export const Route = createFileRoute("/api/admin/roles")({
@@ -9,6 +9,21 @@ export const Route = createFileRoute("/api/admin/roles")({
       GET: async ({ request }) => {
         const url = new URL(request.url)
         const body = { confirmSecret: url.searchParams.get("confirmSecret") || "" }
+        const userId = String(url.searchParams.get("userId") || "").trim()
+        if (!userId) {
+          const self = await resolveUbuntuStaffSession(request)
+          if (!self.ok) {
+            return Response.json({ ok: false, error: self.error, checkoutEnabled: false }, { status: self.status })
+          }
+          return Response.json({
+            ok: true,
+            userId: self.actorUserId,
+            username: self.username,
+            email: self.email,
+            roles: self.roles,
+            checkoutEnabled: false,
+          })
+        }
         const auth = await authorizeUbuntuStaff(request, body, "SUPPORT")
         if (!auth.ok) {
           return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
@@ -19,10 +34,6 @@ export const Route = createFileRoute("/api/admin/roles")({
             error: "Ubuntu Afrique database is not configured",
             checkoutEnabled: false,
           }, { status: 503 })
-        }
-        const userId = String(url.searchParams.get("userId") || "").trim()
-        if (!userId) {
-          return Response.json({ ok: false, error: "userId is required", checkoutEnabled: false }, { status: 400 })
         }
         try {
           await loadUbuntuUser(auth.ubuntu, userId)

@@ -123,9 +123,9 @@ function PayPage() {
         </div>
       </nav>
       <main className="mx-auto max-w-5xl px-6 py-12">
-        <h1 className="font-display text-3xl font-bold">Pay CARD or FRACTION</h1>
+        <h1 className="font-display text-3xl font-bold">Pay CARD, FRACTION, or MARKETPLACE</h1>
         <p className="mt-2 text-muted-foreground">
-          Ubuntu staging PSP only. Sign in on this preview host first. Amount comes from the Ubuntu book. Marketplace and NFT stay closed.
+          Ubuntu staging PSP only. Sign in on this host first. Amount comes from the Ubuntu book. NFT stays closed.
         </p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {result && (
@@ -151,7 +151,7 @@ function PayPage() {
         {!ticket && !result && (
           <section className="mt-8 grid gap-4">
             {pending.length === 0 && !error && (
-              <p className="text-sm text-muted-foreground">No pending CARD or FRACTION orders.</p>
+              <p className="text-sm text-muted-foreground">No pending CARD, FRACTION, or MARKETPLACE orders.</p>
             )}
             {pending.map((order) => (
               <button

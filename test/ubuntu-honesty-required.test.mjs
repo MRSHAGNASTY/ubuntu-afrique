@@ -64,7 +64,7 @@ test("Wave T CARD/FRACTION pages stay named-open and marketplace/NFT stay 403", 
   }
   assert.match(cards, /Named open: CARD only|Public CARD checkout/)
   assert.match(invest, /Named FRACTION checkout is open/)
-  assert.match(pay, /Pay CARD or FRACTION/)
+  assert.match(pay, /Pay CARD, FRACTION, or MARKETPLACE/)
   assert.match(publicMarket, /persistPendingMarketplaceOrder/)
   assert.match(publicMarket, /Session required/)
   assert.match(publicNft, /status: 403/)
@@ -92,5 +92,5 @@ test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
   assert.match(isolation, /fgubaqoftdeefcakejwu/)
   assert.match(isolation, /Ubuntu client refuses Aureus project ref/)
   assert.match(isolation, /will not connect to Aureus production/)
-  assert.equal(pkg.version, "0.1.63")
+  assert.equal(pkg.version, "0.1.64")
 })

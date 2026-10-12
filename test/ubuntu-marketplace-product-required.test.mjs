@@ -69,5 +69,5 @@ test("Wave Q pages browse and Wave V opens product checkout", () => {
   assert.match(publicOrder, /Session required/)
   assert.match(catalog, /featured/)
   assert.equal(existsSync(new URL("../src/routes/marketplace/products.tsx", import.meta.url)), true)
-  assert.equal(pkg.version, "0.1.63")
+  assert.equal(pkg.version, "0.1.64")
 })

@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage, ubuntuStaffHeaders } from "../../lib/ubuntuAdminClient"
 
 export const Route = createFileRoute("/admin/fractions")({
   component: AdminFractionsPage,
@@ -33,25 +32,21 @@ function AdminFractionsPage() {
   }, [])
 
   async function gate() {
-    const current = await auth.getCurrentUser()
-    if (!current.user || current.identitySource !== "aureus" || !isAureusAdmin(current.profile)) {
-      navigate({ to: "/auth/login" })
+    const me = await gateUbuntuAdminPage(navigate, "SHARE")
+    if (!me) return
+    if (!me.allowed) {
+      setError(me.error)
       return
     }
     setAllowed(true)
   }
 
   async function load() {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setError("Confirm secret required")
-      return
-    }
     setBusy(true)
     setError("")
     try {
       const res = await fetch("/api/admin/fractions/orders?limit=100", {
-        headers: { "x-ua-commerce-confirm": secret },
+        headers: await ubuntuStaffHeaders(confirmSecret),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {
@@ -68,19 +63,14 @@ function AdminFractionsPage() {
   }
 
   async function post(path: string, body: Record<string, string>) {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setError("Confirm secret required")
-      return
-    }
     setBusy(true)
     setError("")
     setNote("")
     try {
       const res = await fetch(path, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-ua-commerce-confirm": secret },
-        body: JSON.stringify({ ...body, confirmSecret: secret }),
+        headers: { "Content-Type": "application/json", ...(await ubuntuStaffHeaders(confirmSecret)) },
+        body: JSON.stringify({ ...body, confirmSecret: confirmSecret.trim() }),
       })
       const json = await res.json()
       if (!res.ok || !json.ok) {

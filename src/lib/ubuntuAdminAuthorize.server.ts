@@ -19,22 +19,7 @@ export function secretMatches(request: Request, body: Record<string, unknown> = 
   return { configured: true, ok: header === expected || fromBody === expected || fromQuery === expected }
 }
 
-export async function authorizeUbuntuStaff(
-  request: Request,
-  body: Record<string, unknown>,
-  requiredRole: string | null
-) {
-  const secret = secretMatches(request, body)
-  if (!secret.configured && requiredRole == null) {
-    return { ok: false as const, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
-  }
-  if (secret.ok) {
-    return { ok: true as const, via: "secret" as const, actorUserId: null as string | null, ubuntu: getUbuntuClient() }
-  }
-  if (requiredRole == null) {
-    return { ok: false as const, status: 401, error: "Confirm secret required" }
-  }
-
+export async function resolveUbuntuStaffSession(request: Request) {
   let ubuntu
   try {
     ubuntu = getUbuntuServerClient()
@@ -47,7 +32,7 @@ export async function authorizeUbuntuStaff(
 
   const token = bearerToken(request)
   if (!token) {
-    return { ok: false as const, status: 401, error: "Session or confirm secret required" }
+    return { ok: false as const, status: 401, error: "Session required" }
   }
 
   let member = null
@@ -66,12 +51,44 @@ export async function authorizeUbuntuStaff(
   }
 
   const roles = await loadAdminRoles(ubuntu, member.id)
+  return {
+    ok: true as const,
+    status: 200,
+    ubuntu,
+    actorUserId: String(member.id),
+    username: String(member.username || ""),
+    email: String(member.email || ""),
+    roles,
+  }
+}
+
+export async function authorizeUbuntuStaff(
+  request: Request,
+  body: Record<string, unknown>,
+  requiredRole: string | null
+) {
+  const secret = secretMatches(request, body)
+  if (!secret.configured && requiredRole == null) {
+    return { ok: false as const, status: 503, error: "UA_COMMERCE_CONFIRM_SECRET is not configured" }
+  }
+  if (secret.ok) {
+    return { ok: true as const, via: "secret" as const, actorUserId: null as string | null, ubuntu: getUbuntuClient() }
+  }
+  if (requiredRole == null) {
+    return { ok: false as const, status: 401, error: "Confirm secret required" }
+  }
+
+  const session = await resolveUbuntuStaffSession(request)
+  if (!session.ok) {
+    return { ok: false as const, status: session.status, error: session.error }
+  }
+
   try {
-    authorizeUbuntuAdmin({ secretOk: false, roles, requiredRole })
+    authorizeUbuntuAdmin({ secretOk: false, roles: session.roles, requiredRole })
   } catch (err) {
     return { ok: false as const, status: 403, error: err instanceof Error ? err.message : "Ubuntu admin role required" }
   }
-  return { ok: true as const, via: "role" as const, actorUserId: String(member.id), ubuntu }
+  return { ok: true as const, via: "role" as const, actorUserId: session.actorUserId, ubuntu: session.ubuntu }
 }
 
 function getUbuntuClient() {

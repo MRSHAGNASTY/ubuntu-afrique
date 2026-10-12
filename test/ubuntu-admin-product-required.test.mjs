@@ -27,16 +27,21 @@ test("Wave O admin shell is Ubuntu desks, not Aureus administration", () => {
   assert.doesNotMatch(admin, /marketplace_enabled/)
   assert.doesNotMatch(admin, /nft_marketplace_enabled/)
   assert.doesNotMatch(admin, /fgubaqoftdeefcakejwu/)
+  assert.doesNotMatch(admin, /isAureusAdmin/)
+  assert.match(admin, /gateUbuntuAdminPage/)
+  assert.match(admin, /ua_admin_roles/)
 })
 
 test("Wave O card desk uses existing fulfilment and refund APIs", () => {
   assert.match(cards, /\/api\/admin\/cards\/orders/)
   assert.match(cards, /\/api\/admin\/cards\/status/)
   assert.match(cards, /\/api\/admin\/cards\/refund/)
-  assert.match(cards, /x-ua-commerce-confirm/)
+  assert.match(cards, /ubuntuStaffHeaders/)
   assert.match(cards, /PLASTIC/)
   assert.match(cards, /METAL/)
   assert.doesNotMatch(cards, /fgubaqoftdeefcakejwu/)
+  assert.doesNotMatch(cards, /isAureusAdmin/)
+  assert.match(cards, /gateUbuntuAdminPage/)
 })
 
 test("Wave O fraction desk remits without treating reserve as paid", () => {
@@ -70,6 +75,6 @@ test("Wave O ranks desk does not auto-promote user 10", () => {
   assert.doesNotMatch(ranks, /fgubaqoftdeefcakejwu/)
 })
 
-test("Wave O version is 0.1.63", () => {
-  assert.equal(pkg.version, "0.1.63")
+test("Wave O version is 0.1.64", () => {
+  assert.equal(pkg.version, "0.1.64")
 })

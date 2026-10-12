@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
 import { useEffect, useState, type ReactNode } from "react"
-import { auth } from "../../lib/supabase"
-import { isAureusAdmin, type AureusMemberProfile } from "../../lib/aureusMember"
+import { gateUbuntuAdminPage, ubuntuStaffHeaders } from "../../lib/ubuntuAdminClient"
 import type { FinanceSummary } from "../../lib/persistFinanceRead.server"
 
 export const Route = createFileRoute("/admin/finance")({
@@ -10,7 +9,7 @@ export const Route = createFileRoute("/admin/finance")({
 
 function AdminFinancePage() {
   const navigate = useNavigate()
-  const [profile, setProfile] = useState<AureusMemberProfile | null>(null)
+  const [profile, setProfile] = useState<{ userId: string } | null>(null)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   const [confirmSecret, setConfirmSecret] = useState("")
@@ -24,17 +23,13 @@ function AdminFinancePage() {
 
   async function loadAdmin() {
     try {
-      const current = await auth.getCurrentUser()
-      if (!current.user || current.identitySource !== "aureus") {
-        navigate({ to: "/auth/login" })
+      const me = await gateUbuntuAdminPage(navigate, "FINANCE")
+      if (!me) return
+      if (!me.allowed) {
+        setError(me.error)
         return
       }
-      const member = current.profile
-      if (!isAureusAdmin(member)) {
-        setError("This Aureus account is not an administrator.")
-        return
-      }
-      setProfile(member)
+      setProfile({ userId: me.userId })
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load admin profile")
     } finally {
@@ -43,16 +38,11 @@ function AdminFinancePage() {
   }
 
   async function loadSummary() {
-    const secret = confirmSecret.trim()
-    if (!secret) {
-      setFetchError("Enter the commerce confirm secret to load Ubuntu finance totals.")
-      return
-    }
     setFetching(true)
     setFetchError("")
     try {
       const response = await fetch("/api/admin/finance/summary", {
-        headers: { "x-ua-commerce-confirm": secret },
+        headers: await ubuntuStaffHeaders(confirmSecret),
       })
       const body = (await response.json()) as {
         ok?: boolean
@@ -124,7 +114,7 @@ function AdminFinancePage() {
 
             <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
               <label className="block text-sm text-muted-foreground" htmlFor="confirm-secret">
-                Commerce confirm secret (required to load totals)
+                Optional Preview confirm secret (role session is enough)
               </label>
               <input
                 id="confirm-secret"

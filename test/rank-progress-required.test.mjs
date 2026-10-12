@@ -136,8 +136,7 @@ test("persist loader is read-only Ubuntu; progress API stays closed", () => {
 
   const route = readFileSync(new URL("../src/routes/api/admin/ranks/progress.ts", import.meta.url), "utf8")
   assert.match(route, /createFileRoute\("\/api\/admin\/ranks\/progress"\)/)
-  assert.match(route, /UA_COMMERCE_CONFIRM_SECRET/)
-  assert.match(route, /x-ua-commerce-confirm/)
+  assert.match(route, /authorizeUbuntuStaff/)
   assert.match(route, /confirmSecret/)
   assert.match(route, /currentRank/)
   assert.match(route, /teamVolume/)

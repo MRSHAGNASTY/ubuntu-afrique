@@ -315,12 +315,12 @@ for (const page of catalogPages) {
 }
 
 const adminCardOrders = readFileSync(new URL("../src/routes/api/admin/cards/orders.ts", import.meta.url), "utf8")
-assert.match(adminCardOrders, /UA_COMMERCE_CONFIRM_SECRET/, "admin card list is secret-gated")
+assert.match(adminCardOrders, /authorizeUbuntuStaff/, "admin card list is role-gated")
 assert.match(adminCardOrders, /ua_card_orders/, "admin card list reads Ubuntu card orders")
 assert.match(adminCardOrders, /checkoutEnabled: false/, "admin card list keeps checkout closed")
 
 const adminFractionOrders = readFileSync(new URL("../src/routes/api/admin/fractions/orders.ts", import.meta.url), "utf8")
-assert.match(adminFractionOrders, /UA_COMMERCE_CONFIRM_SECRET/, "admin fraction list is secret-gated")
+assert.match(adminFractionOrders, /authorizeUbuntuStaff/, "admin fraction list is role-gated")
 assert.match(adminFractionOrders, /ua_fraction_transactions/, "admin fraction list reads Ubuntu fraction rows")
 assert.match(adminFractionOrders, /checkoutEnabled: false/, "admin fraction list keeps checkout closed")
 
@@ -346,7 +346,7 @@ assert.match(schema9, /NEVER run this on Aureus production/, "0009 refuses Aureu
 assert.match(schema9, /fulfilment_status/, "0009 adds card fulfilment_status")
 
 const cardStatus = readFileSync(new URL("../src/routes/api/admin/cards/status.ts", import.meta.url), "utf8")
-assert.match(cardStatus, /UA_COMMERCE_CONFIRM_SECRET/, "card fulfilment status is secret-gated")
+assert.match(cardStatus, /authorizeUbuntuStaff/, "card fulfilment status is role-gated")
 assert.match(cardStatus, /advanceCardFulfilment/, "card status uses the shared fulfilment path")
 assert.match(cardStatus, /Card fulfilment starts after PAID/, "fulfilment cannot start before PAID")
 assert.match(cardStatus, /checkoutEnabled: false/, "card status keeps checkout closed")
@@ -365,14 +365,14 @@ assert.doesNotMatch(persistRefund, /\.delete\(/, "refund persist does not delete
 assert.doesNotMatch(persistRefund, /fgubaqoftdeefcakejwu/, "refund persist never targets Aureus")
 
 const cardRefund = readFileSync(new URL("../src/routes/api/admin/cards/refund.ts", import.meta.url), "utf8")
-assert.match(cardRefund, /UA_COMMERCE_CONFIRM_SECRET/, "card refund is secret-gated")
+assert.match(cardRefund, /authorizeUbuntuStaff/, "card refund is role-gated")
 assert.match(cardRefund, /reverseCardOrder/, "card refund uses the shared reversal path")
 assert.match(cardRefund, /Card refund requires fulfilment to exist/, "refund refuses before fulfilment")
 assert.match(cardRefund, /checkoutEnabled: false/, "card refund keeps checkout closed")
 assert.doesNotMatch(cardRefund, /fgubaqoftdeefcakejwu/, "card refund never targets Aureus")
 
 const fractionRefund = readFileSync(new URL("../src/routes/api/admin/fractions/refund.ts", import.meta.url), "utf8")
-assert.match(fractionRefund, /UA_COMMERCE_CONFIRM_SECRET/, "fraction refund is secret-gated")
+assert.match(fractionRefund, /authorizeUbuntuStaff/, "fraction refund is role-gated")
 assert.match(fractionRefund, /reverseFractionOrder/, "fraction refund uses the shared reversal path")
 assert.match(fractionRefund, /checkoutEnabled: false/, "fraction refund keeps checkout closed")
 assert.doesNotMatch(fractionRefund, /fgubaqoftdeefcakejwu/, "fraction refund never targets Aureus")
@@ -397,7 +397,7 @@ assert.match(persistLiability, /Reserved does not mean paid/, "remit refuses res
 assert.doesNotMatch(persistLiability, /fgubaqoftdeefcakejwu/, "liability persist never targets Aureus")
 
 const remitApi = readFileSync(new URL("../src/routes/api/admin/liability/remit.ts", import.meta.url), "utf8")
-assert.match(remitApi, /UA_COMMERCE_CONFIRM_SECRET/, "liability remit is secret-gated")
+assert.match(remitApi, /authorizeUbuntuStaff/, "liability remit is role-gated")
 assert.match(remitApi, /remitPaidFractionLiability/, "liability remit API calls persistLiabilityRemitted")
 assert.match(remitApi, /taken from the paid Ubuntu fraction/, "liability remit rejects client amount")
 assert.match(remitApi, /checkoutEnabled: false/, "liability remit keeps checkout closed")
@@ -433,7 +433,7 @@ assert.match(ubuntuServer, /monthly_team_qv/, "BLP qualification uses monthly te
 assert.match(ubuntuServer, /loadBlpMembers[\s\S]*is_active/, "BLP loader reads Ubuntu ua_users.is_active")
 
 const rankPromote = readFileSync(new URL("../src/routes/api/admin/ranks/promote.ts", import.meta.url), "utf8")
-assert.match(rankPromote, /UA_COMMERCE_CONFIRM_SECRET/, "rank promote is secret-gated")
+assert.match(rankPromote, /authorizeUbuntuStaff/, "rank promote is role-gated")
 assert.match(rankPromote, /evaluateRankQualification/, "rank promote uses the shared qualification engine")
 assert.match(rankPromote, /persistRankPromotion/, "rank promote persists Ubuntu ranks")
 assert.match(rankPromote, /checkoutEnabled: false/, "rank promote keeps checkout closed")
@@ -452,7 +452,7 @@ assert.match(schema13, /NEVER run this on Aureus production/, "0013 refuses Aure
 assert.match(schema13, /ua_rank_promotions/, "0013 adds Ubuntu rank promotions")
 
 const rankProgressRoute = readFileSync(new URL("../src/routes/api/admin/ranks/progress.ts", import.meta.url), "utf8")
-assert.match(rankProgressRoute, /UA_COMMERCE_CONFIRM_SECRET/, "rank progress is secret-gated")
+assert.match(rankProgressRoute, /authorizeUbuntuStaff/, "rank progress is role-gated")
 assert.match(rankProgressRoute, /rankProgress/, "rank progress uses the shared progress calculator")
 assert.match(rankProgressRoute, /checkoutEnabled: false/, "rank progress keeps checkout closed")
 assert.match(rankProgressRoute, /taken from Ubuntu ua_user_ranks/, "rank progress rejects client rank")
@@ -466,7 +466,7 @@ assert.doesNotMatch(persistRankProgress, /\.insert\(|\.update\(|\.delete\(/, "ra
 assert.doesNotMatch(persistRankProgress, /fgubaqoftdeefcakejwu/, "rank progress loader never targets Aureus")
 
 const financeSummary = readFileSync(new URL("../src/routes/api/admin/finance/summary.ts", import.meta.url), "utf8")
-assert.match(financeSummary, /UA_COMMERCE_CONFIRM_SECRET/, "finance summary is secret-gated")
+assert.match(financeSummary, /authorizeUbuntuStaff/, "finance summary is role-gated")
 assert.match(financeSummary, /loadFinanceSummary/, "finance summary reads Ubuntu totals")
 assert.match(financeSummary, /checkoutEnabled: false/, "finance summary keeps checkout closed")
 assert.doesNotMatch(financeSummary, /confirmCommercePayment/, "finance summary does not confirm payment")
@@ -494,12 +494,12 @@ assert.match(schema15, /ua_marketplace_orders/, "0015 adds Ubuntu marketplace or
 assert.match(schema15, /ua_company_settlements/, "0015 adds Ubuntu company settlements")
 
 const adminCompanies = readFileSync(new URL("../src/routes/api/admin/marketplace/companies.ts", import.meta.url), "utf8")
-assert.match(adminCompanies, /UA_COMMERCE_CONFIRM_SECRET/, "admin marketplace companies are secret-gated")
+assert.match(adminCompanies, /authorizeUbuntuStaff/, "admin marketplace companies are role-gated")
 assert.match(adminCompanies, /checkoutEnabled: false/, "admin marketplace companies keep checkout closed")
 assert.doesNotMatch(adminCompanies, /fgubaqoftdeefcakejwu/, "admin marketplace companies never target Aureus")
 
 const adminProducts = readFileSync(new URL("../src/routes/api/admin/marketplace/products.ts", import.meta.url), "utf8")
-assert.match(adminProducts, /UA_COMMERCE_CONFIRM_SECRET/, "admin marketplace products are secret-gated")
+assert.match(adminProducts, /authorizeUbuntuStaff/, "admin marketplace products are role-gated")
 assert.match(adminProducts, /STANDARD_25/, "admin marketplace products force shared Gap")
 assert.match(adminProducts, /checkoutEnabled: false/, "admin marketplace products keep checkout closed")
 
@@ -544,7 +544,7 @@ assert.match(adminNftSettle, /checkoutEnabled: false/, "admin NFT settle keeps c
 assert.doesNotMatch(adminNftSettle, /fgubaqoftdeefcakejwu/, "admin NFT settle never targets Aureus")
 
 const adminNftRecon = readFileSync(new URL("../src/routes/api/admin/nft/recon.ts", import.meta.url), "utf8")
-assert.match(adminNftRecon, /UA_COMMERCE_CONFIRM_SECRET/, "admin NFT recon is secret-gated")
+assert.match(adminNftRecon, /authorizeUbuntuStaff/, "admin NFT recon is role-gated")
 assert.match(adminNftRecon, /loadNftRecon/, "admin NFT recon reads Ubuntu NFT ledgers")
 assert.match(adminNftRecon, /checkoutEnabled: false/, "admin NFT recon keeps checkout closed")
 assert.doesNotMatch(adminNftRecon, /fgubaqoftdeefcakejwu/, "admin NFT recon never targets Aureus")
@@ -571,7 +571,7 @@ assert.match(publicMarketMedia, /Public checkout is not open/, "public marketpla
 assert.match(publicMarketMedia, /status: 403/, "public marketplace media stays 403")
 
 const adminMarketMedia = readFileSync(new URL("../src/routes/api/admin/marketplace/media.ts", import.meta.url), "utf8")
-assert.match(adminMarketMedia, /UA_COMMERCE_CONFIRM_SECRET/, "admin marketplace media is secret-gated")
+assert.match(adminMarketMedia, /authorizeUbuntuStaff/, "admin marketplace media is role-gated")
 assert.match(adminMarketMedia, /persistMarketplaceMediaArchive/, "admin marketplace media archives instead of deleting")
 assert.match(adminMarketMedia, /checkoutEnabled: false/, "admin marketplace media keeps checkout closed")
 assert.doesNotMatch(adminMarketMedia, /\.delete\(/, "admin marketplace media does not delete rows")
@@ -627,7 +627,7 @@ assert.doesNotMatch(schema24, /nft_marketplace_enabled', 'true'/, "0024 does not
 
 const reportApi = readFileSync(new URL("../src/routes/api/admin/reports.ts", import.meta.url), "utf8")
 assert.match(reportApi, /checkoutEnabled: false/, "admin reports keep checkout closed")
-assert.match(reportApi, /UA_COMMERCE_CONFIRM_SECRET/, "admin reports are secret-gated")
+assert.match(reportApi, /authorizeUbuntuStaff/, "admin reports are role-gated")
 assert.doesNotMatch(reportApi, /insert\(/, "admin reports do not insert")
 
 console.log("ubuntu-afrique-db-isolation.test.mjs: OK")

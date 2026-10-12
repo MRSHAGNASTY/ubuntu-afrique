@@ -137,5 +137,24 @@ test("Wave J webhook stays Ubuntu-only and checkout stays closed", {
   assert.match(publicOrder, /checkoutEnabled: true/)
   assert.match(envExample, /UA_PSP_WEBHOOK_SECRET/)
   assert.doesNotMatch(envExample, /NOWPAYMENTS/)
-  assert.equal(pkg.version, "0.1.63")
+  assert.equal(pkg.version, "0.1.64")
+})
+
+test("Wave U dummy PSP signs MARKETPLACE and refuses NFT", {
+  skip: !existsSync(enginePath),
+}, async () => {
+  const { signUbuntuPspWebhook } = await import(pathToFileURL(enginePath).href)
+  const { assertPaymentKind, recordPaymentEvent } = await import(pathToFileURL(`${projectRoot}/src/lib/paymentAdapter.mjs`).href)
+  const market = {
+    paymentId: "PAY-MKT-1",
+    orderId: "MKT-1",
+    kind: "MARKETPLACE",
+    amount: "100.00",
+    currency: "USD",
+  }
+  assert.equal(assertPaymentKind("MARKETPLACE"), "MARKETPLACE")
+  assert.throws(() => assertPaymentKind("NFT"), /CARD, FRACTION, or MARKETPLACE/)
+  assert.equal(recordPaymentEvent({ ...market, provider: "UA_PSP_STAGING" }).kind, "MARKETPLACE")
+  assert.match(signUbuntuPspWebhook(secret, market), /^[0-9a-f]{64}$/)
+  assert.throws(() => signUbuntuPspWebhook(secret, { ...market, kind: "NFT" }), /CARD, FRACTION, or MARKETPLACE/)
 })
