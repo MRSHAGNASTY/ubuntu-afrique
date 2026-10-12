@@ -1,4 +1,4 @@
-/** Ubuntu member book. Wallet, rank, cards, fractions only. Checkout stays closed. */
+/** Ubuntu member book. Wallet, rank, cards, fractions only. Marketplace/NFT stay closed. */
 
 import { addMoney, formatMoney2, parseMoney } from "./money.mjs"
 
@@ -78,6 +78,10 @@ export function buildMemberOverview(input) {
   return {
     book: "ubuntu",
     checkoutEnabled: false,
+    cardsEnabled: true,
+    fractionsEnabled: true,
+    marketplaceEnabled: false,
+    nftEnabled: false,
     userId: String(input?.userId || ""),
     username: String(input?.username || ""),
     email: String(input?.email || ""),

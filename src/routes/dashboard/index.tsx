@@ -129,8 +129,13 @@ function DashboardPage() {
           </div>
           <div className="flex items-center gap-6">
             <a href="/dashboard" className="text-sm font-medium text-gold">Dashboard</a>
+            <a href="/dashboard/network" className="text-sm text-muted-foreground hover:text-foreground">Network</a>
+            <a href="/dashboard/wallet" className="text-sm text-muted-foreground hover:text-foreground">Wallet</a>
+            <a href="/dashboard/orders" className="text-sm text-muted-foreground hover:text-foreground">Orders</a>
             <a href="/dashboard/cards" className="text-sm text-muted-foreground hover:text-foreground">Cards</a>
             <a href="/dashboard/invest" className="text-sm text-muted-foreground hover:text-foreground">Fractions</a>
+            <a href="/dashboard/pay" className="text-sm text-muted-foreground hover:text-foreground">Pay</a>
+            <a href="/dashboard/kyc" className="text-sm text-muted-foreground hover:text-foreground">KYC</a>
             <a href="/marketplace" className="text-sm text-muted-foreground hover:text-foreground">Marketplace</a>
             <a href="/dashboard/nft" className="text-sm text-muted-foreground hover:text-foreground">NFT</a>
             <a href="/affiliate" className="text-sm text-muted-foreground hover:text-foreground">Affiliate</a>
@@ -185,7 +190,7 @@ function DashboardPage() {
                   href="/dashboard/invest"
                   className="mt-6 inline-flex items-center gap-2 rounded-md border border-gold/50 px-6 py-3 font-semibold text-gold transition-colors hover:bg-gold/10"
                 >
-                  Fraction quote — checkout closed
+                  Buy fractions
                 </a>
               </div>
 

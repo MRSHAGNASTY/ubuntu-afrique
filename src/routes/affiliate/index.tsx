@@ -1,120 +1,91 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Copy, Users, TrendingUp, DollarSign, ArrowLeft, CheckCircle } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-import { supabase } from "../../lib/supabase";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
+import { Copy, Users, TrendingUp, DollarSign, ArrowLeft, CheckCircle } from "lucide-react"
 
 export const Route = createFileRoute("/affiliate/")({
   component: AffiliatePage,
-});
+})
 
-interface AffiliateData {
-  referral_code: string;
-  referral_link: string;
-  stats: {
-    direct_referrals: number;
-    total_team: number;
-    total_earned: number;
-    pending_commissions: number;
-  };
-  recent_referrals: Array<{
-    username: string;
-    joined_at: string;
-    total_invested: number;
-  }>;
-  commissions: Array<{
-    amount: number;
-    shares_bonus: number;
-    type: string;
-    status: string;
-    created_at: string;
-  }>;
+type DirectRow = { userId: string; username: string; email: string; rank: string }
+
+function sessionToken() {
+  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || "" : ""
 }
 
 function AffiliatePage() {
-  const navigate = useNavigate();
-  const [data, setData] = useState<AffiliateData | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate()
+  const [username, setUsername] = useState("")
+  const [directs, setDirects] = useState<DirectRow[]>([])
+  const [teamMemberCount, setTeamMemberCount] = useState(0)
+  const [currentRank, setCurrentRank] = useState("SSA")
+  const [available, setAvailable] = useState("0.00")
+  const [credits, setCredits] = useState("0.00")
+  const [entries, setEntries] = useState<Array<{ entryType: string; amount: string; status: string; createdAt: string }>>([])
+  const [copied, setCopied] = useState(false)
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchAffiliateData();
-  }, []);
+    if (!sessionToken()) {
+      navigate({ to: "/auth/login", search: { next: "/affiliate" } })
+      return
+    }
+    void load()
+  }, [])
 
-  const fetchAffiliateData = async () => {
+  async function load() {
+    setError("")
     try {
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        navigate({ to: "/auth/login" });
-        return;
+      const headers = { Authorization: `Bearer ${sessionToken()}` }
+      const [networkRes, walletRes, ledgerRes] = await Promise.all([
+        fetch("/api/member/network", { headers }),
+        fetch("/api/member/wallet", { headers }),
+        fetch("/api/member/ledger", { headers }),
+      ])
+      const network = await networkRes.json()
+      const wallet = await walletRes.json()
+      const ledger = await ledgerRes.json()
+      if (networkRes.status === 401 || walletRes.status === 401 || ledgerRes.status === 401) {
+        navigate({ to: "/auth/login", search: { next: "/affiliate" } })
+        return
       }
-
-      const { data: userIdData } = await supabase
-        .from("ua_users")
-        .select("id, username, email, sponsor_code")
-        .eq("auth_user_id", user.id)
-        .single();
-
-      if (!userIdData) {
-        navigate({ to: "/auth/login" });
-        return;
+      if (!network.ok) {
+        setError(network.error || "Ubuntu network failed")
+        return
       }
-
-      const userId = userIdData.id;
-
-      const { data: commissions } = await supabase
-        .from("ua_commissions")
-        .select("amount, shares_bonus, type, status, created_at")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      const totalEarned = commissions?.reduce((sum, c) => sum + Number(c.amount), 0) || 0;
-      const pending = commissions?.filter((c) => c.status === "pending").reduce((sum, c) => sum + Number(c.amount), 0) || 0;
-
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      setData({
-        referral_code: userIdData.sponsor_code || userIdData.username || "N/A",
-        referral_link: `${origin}/auth/register?ref=${encodeURIComponent(userIdData.username || "")}`,
-        stats: {
-          direct_referrals: 0,
-          total_team: 0,
-          total_earned: totalEarned,
-          pending_commissions: pending,
-        },
-        recent_referrals: [],
-        commissions: commissions || [],
-      });
-    } catch (error) {
-      console.error("Failed to fetch affiliate data", error);
+      if (!wallet.ok) {
+        setError(wallet.error || "Ubuntu wallet failed")
+        return
+      }
+      setUsername(String(ledger.username || network.userId || "member"))
+      setDirects(network.directs || [])
+      setTeamMemberCount(Number(network.teamMemberCount) || 0)
+      setCurrentRank(String(network.currentRank || "SSA"))
+      setAvailable(wallet.summary?.available || "0.00")
+      setCredits(wallet.summary?.credits || "0.00")
+      setEntries(Array.isArray(wallet.entries) ? wallet.entries.slice(0, 8) : [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ubuntu affiliate failed")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const copyReferralLink = () => {
-    if (data) {
-      navigator.clipboard.writeText(data.referral_link);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
+  const origin = typeof window !== "undefined" ? window.location.origin : ""
+  const referralLink = `${origin}/auth/register?ref=${encodeURIComponent(username || "")}`
+
+  function copyReferralLink() {
+    navigator.clipboard.writeText(referralLink)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading affiliate dashboard...</div>
+        <div className="text-muted-foreground">Loading Ubuntu affiliate...</div>
       </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-red-400">Failed to load affiliate data</div>
-      </div>
-    );
+    )
   }
 
   return (
@@ -123,172 +94,113 @@ function AffiliatePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <Link to="/dashboard" className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm">Back to Dashboard</span>
+            <span className="text-sm">Member book</span>
           </Link>
         </div>
       </nav>
 
       <main className="mx-auto max-w-7xl px-6 py-12">
-        <div className="mb-8">
-          <h1 className="font-display text-3xl font-bold">Affiliate Dashboard</h1>
-          <p className="mt-2 text-muted-foreground">
-            Corporate Differential Gap Cover — one rank engine, one wallet ledger
-          </p>
-        </div>
+        <h1 className="font-display text-3xl font-bold">Affiliate</h1>
+        <p className="mt-2 text-muted-foreground">
+          Ubuntu ua_users sponsor tree and wallet ledger. Rank {currentRank}. Marketplace and NFT stay closed.
+        </p>
+        {error && <p className="mt-4 text-red-400">{error}</p>}
 
-        <div className="mb-8 rounded-2xl border border-gold/30 bg-gold/5 p-6">
-          <h2 className="font-display text-lg font-semibold mb-4">Your Referral Link</h2>
+        <div className="mb-8 mt-8 rounded-2xl border border-gold/30 bg-gold/5 p-6">
+          <h2 className="mb-4 font-display text-lg font-semibold">Referral link</h2>
           <div className="flex gap-3">
             <input
               type="text"
               readOnly
-              value={data.referral_link}
-              className="flex-1 rounded-lg border border-gold/20 bg-background/60 px-4 py-3 text-sm font-mono text-foreground"
+              value={referralLink}
+              className="flex-1 rounded-lg border border-gold/20 bg-background/60 px-4 py-3 font-mono text-sm text-foreground"
             />
             <button
               onClick={copyReferralLink}
-              className="flex items-center gap-2 rounded-lg bg-gold-gradient px-6 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-gold)] transition-transform hover:-translate-y-0.5"
+              className="flex items-center gap-2 rounded-lg bg-gold-gradient px-6 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-gold)]"
             >
               {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {copied ? "Copied!" : "Copy"}
+              {copied ? "Copied" : "Copy"}
             </button>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Share this link to earn commissions on every investment made through it
-          </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <StatCard
-            icon={Users}
-            label="Direct Referrals"
-            value={data.stats.direct_referrals.toString()}
-            subtext="Active members"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="Total Team"
-            value={data.stats.total_team.toString()}
-            subtext="Including downline"
-          />
-          <StatCard
-            icon={DollarSign}
-            label="Total Earned"
-            value={`$${data.stats.total_earned.toLocaleString()}`}
-            subtext="All-time commissions"
-          />
-          <StatCard
-            icon={DollarSign}
-            label="Pending"
-            value={`$${data.stats.pending_commissions.toLocaleString()}`}
-            subtext="Awaiting approval"
-            highlight
-          />
+        <div className="mb-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <StatCard icon={Users} label="Directs" value={String(directs.length)} subtext="Personal legs" />
+          <StatCard icon={TrendingUp} label="Team members" value={String(teamMemberCount)} subtext="Sponsor-tree count" />
+          <StatCard icon={DollarSign} label="Wallet available" value={`$${available}`} subtext="Posted credits minus reversals" />
+          <StatCard icon={DollarSign} label="Wallet credits" value={`$${credits}`} subtext="Gap / BLP / NFT types" />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-border bg-card p-8">
-            <h2 className="font-display text-xl font-semibold mb-6">Recent Referrals</h2>
-            {data.recent_referrals.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No referrals yet</p>
+            <h2 className="mb-6 font-display text-xl font-semibold">Direct team</h2>
+            {directs.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground">No personal directs yet</p>
             ) : (
               <div className="space-y-4">
-                {data.recent_referrals.map((referral, idx) => (
-                  <div key={idx} className="flex items-center justify-between border-b border-border/50 pb-3 last:border-0">
+                {directs.map((row) => (
+                  <div key={row.userId} className="flex items-center justify-between border-b border-border/50 pb-3 last:border-0">
                     <div>
-                      <p className="font-semibold">{referral.username}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Joined {new Date(referral.joined_at).toLocaleDateString()}
-                      </p>
+                      <p className="font-semibold">{row.username || row.userId}</p>
+                      <p className="text-xs text-muted-foreground">{row.email}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gold">${referral.total_invested.toLocaleString()}</p>
-                      <p className="text-xs text-muted-foreground">Total invested</p>
-                    </div>
+                    <p className="font-semibold text-gold">{row.rank || "SSA"}</p>
                   </div>
                 ))}
               </div>
             )}
+            <Link to="/dashboard/network" className="mt-6 inline-block text-sm text-gold hover:underline">
+              Open network
+            </Link>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-8">
-            <h2 className="font-display text-xl font-semibold mb-6">Commission History</h2>
-            {data.commissions.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No commissions yet</p>
+            <h2 className="mb-6 font-display text-xl font-semibold">Wallet lines</h2>
+            {entries.length === 0 ? (
+              <p className="py-8 text-center text-muted-foreground">No posted wallet lines</p>
             ) : (
               <div className="space-y-4">
-                {data.commissions.slice(0, 5).map((commission, idx) => (
-                  <div key={idx} className="flex items-center justify-between border-b border-border/50 pb-3 last:border-0">
+                {entries.map((row, idx) => (
+                  <div key={`${row.createdAt}-${idx}`} className="flex items-center justify-between border-b border-border/50 pb-3 last:border-0">
                     <div>
-                      <p className="font-semibold capitalize">{commission.type.replace(/_/g, " ")}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(commission.created_at).toLocaleDateString()}
-                      </p>
+                      <p className="font-semibold">{row.entryType}</p>
+                      <p className="text-xs text-muted-foreground">{row.status}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-gold">${commission.amount.toLocaleString()}</p>
-                      {commission.shares_bonus > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          + {commission.shares_bonus} shares
-                        </p>
-                      )}
-                      <p className={`text-xs ${commission.status === "paid" ? "text-emerald-400" : "text-yellow-400"}`}>
-                        {commission.status}
-                      </p>
-                    </div>
+                    <p className="font-semibold text-gold">${row.amount}</p>
                   </div>
                 ))}
               </div>
             )}
+            <Link to="/dashboard/wallet" className="mt-6 inline-block text-sm text-gold hover:underline">
+              Open wallet
+            </Link>
           </div>
-        </div>
-
-        <div className="mt-8 rounded-2xl border border-gold/30 bg-gold/5 p-8">
-          <h2 className="font-display text-xl font-semibold mb-4">Corporate Differential Gap Cover</h2>
-          <p className="mb-4 text-sm text-muted-foreground">
-            One rank engine. Percentages are maximum entitlement, not stacked add-ons. Missing ranks compress. Unclaimed gap stays with Ubuntu Afrique.
-          </p>
-          <div className="grid gap-4 md:grid-cols-5">
-            <RankCard code="SSA" title="Shares Sales Associate" percent="10%" />
-            <RankCard code="ASM" title="Associate Sales Manager" percent="16%" />
-            <RankCard code="BSM" title="Business Sales Manager" percent="20%" />
-            <RankCard code="SSM" title="Senior Sales Manager" percent="23%" />
-            <RankCard code="VP" title="Vice President" percent="25%" />
-          </div>
-          <p className="mt-6 text-xs text-muted-foreground">
-            Cards, Fractional Shares, Marketplace, and NFT trading: Coming Soon. NFT production trading stays off until all 1,400,000 Aureus shares are sold.
-          </p>
         </div>
       </main>
-    </div>
-  );
-}
-
-function RankCard({ code, title, percent }: { code: string; title: string; percent: string }) {
-  return (
-    <div className="rounded-lg bg-background/60 p-4">
-      <p className="text-xs font-semibold uppercase tracking-widest text-gold">{code}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{title}</p>
-      <p className="mt-2 font-display text-2xl font-bold text-gold">{percent}</p>
     </div>
   )
 }
 
-function StatCard({ icon: Icon, label, value, subtext, highlight }: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  subtext: string;
-  highlight?: boolean;
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  subtext,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+  subtext: string
 }) {
   return (
-    <div className={`rounded-2xl border p-6 ${highlight ? "border-gold/30 bg-gold/5" : "border-border bg-card"}`}>
-      <div className="grid h-12 w-12 place-items-center rounded-xl bg-gold/10 text-gold mb-4">
+    <div className="rounded-2xl border border-border bg-card p-6">
+      <div className="mb-4 grid h-12 w-12 place-items-center rounded-xl bg-gold/10 text-gold">
         <Icon className="h-6 w-6" />
       </div>
       <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
       <div className="mt-1 font-display text-2xl font-bold">{value}</div>
       <div className="mt-1 text-xs text-muted-foreground">{subtext}</div>
     </div>
-  );
+  )
 }
