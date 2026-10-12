@@ -106,5 +106,5 @@ test("member payment routes stay Ubuntu-only and do not open marketplace or NFT"
   assert.doesNotMatch(pay, /\/api\/nft\/order/)
   assert.match(publicMarket, /Public checkout is not open/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.60")
+  assert.equal(pkg.version, "0.1.61")
 })

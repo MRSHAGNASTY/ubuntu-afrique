@@ -67,5 +67,5 @@ test("Wave Q pages browse only and keep public buy closed", () => {
   assert.match(publicOrder, /status: 403/)
   assert.match(catalog, /featured/)
   assert.equal(existsSync(new URL("../src/routes/marketplace/products.tsx", import.meta.url)), true)
-  assert.equal(pkg.version, "0.1.60")
+  assert.equal(pkg.version, "0.1.61")
 })

@@ -55,7 +55,7 @@ test("member overview rejects investments and Aureus share totals", () => {
     monthlyTeamQv: "10",
   })
   assert.equal(overview.book, "ubuntu")
-  assert.equal(overview.checkoutEnabled, false)
+  assert.equal(overview.checkoutEnabled, true)
   assert.equal(overview.cardsEnabled, true)
   assert.equal(overview.fractionsEnabled, true)
   assert.equal(overview.marketplaceEnabled, false)
@@ -69,6 +69,8 @@ test("member overview rejects investments and Aureus share totals", () => {
 test("member ledger API and dashboard stay on the Ubuntu book", () => {
   const api = readFileSync(new URL("../src/routes/api/member/ledger.ts", import.meta.url), "utf8")
   assert.match(api, /checkoutEnabled: false/)
+  assert.match(api, /ok: true, \.\.\.overview/)
+  assert.doesNotMatch(api, /\.\.\.overview, checkoutEnabled: false/)
   assert.match(api, /loadMemberLedgerSnapshot/)
   assert.match(api, /verifyUaSession/)
   assert.doesNotMatch(api, /ua_investments/)

@@ -68,5 +68,5 @@ test("Wave K pages stay Coming Soon and do not open buy routes", () => {
   assert.match(readFileSync(nftDash, "utf8"), /\/api\/nft\/my-assets/)
   assert.match(publicMarketOrder, /status: 403/)
   assert.match(publicNftOrder, /status: 403/)
-  assert.equal(pkg.version, "0.1.60")
+  assert.equal(pkg.version, "0.1.61")
 })

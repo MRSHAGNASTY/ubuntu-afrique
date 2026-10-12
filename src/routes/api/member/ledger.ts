@@ -85,7 +85,7 @@ export const Route = createFileRoute("/api/member/ledger")({
           }
 
           const overview = await loadMemberLedgerSnapshot(ubuntu, member.id)
-          return Response.json({ ok: true, ...overview, checkoutEnabled: false })
+          return Response.json({ ok: true, ...overview })
         } catch (err) {
           const message = err instanceof Error ? err.message : "Ubuntu ledger failed"
           const missing = message.includes("not found")

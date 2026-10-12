@@ -1,4 +1,4 @@
-/** Ubuntu member book. Wallet, rank, cards, fractions only. Marketplace/NFT stay closed. */
+/** Ubuntu member book. Named CARD and FRACTION are open. Marketplace/NFT stay closed. */
 
 import { addMoney, formatMoney2, parseMoney } from "./money.mjs"
 
@@ -77,7 +77,7 @@ export function buildMemberOverview(input) {
   }
   return {
     book: "ubuntu",
-    checkoutEnabled: false,
+    checkoutEnabled: true,
     cardsEnabled: true,
     fractionsEnabled: true,
     marketplaceEnabled: false,
