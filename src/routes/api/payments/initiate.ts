@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router"
 import { randomUUID } from "node:crypto"
 import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
 import { assertUbuntuPspSecret } from "../../../lib/ubuntuPsp.mjs"
+import { assertUbuntuPaystackSecret, paystackConfigured, UA_PAYSTACK_PROVIDER } from "../../../lib/ubuntuPaystack.mjs"
+import { initializeUbuntuPaystackPayment } from "../../../lib/persistPaystack.server"
 import { bearerToken, resolveSessionMember } from "../../../lib/resolveUbuntuSessionMember.server"
 import {
   assertMemberPaymentGateNamed,
@@ -51,11 +53,16 @@ export const Route = createFileRoute("/api/payments/initiate")({
         }
         if (!ubuntu) return gateError(503, "Ubuntu Afrique database is not configured")
 
-        let secret
+        let secret = ""
+        let paystackSecret = ""
         try {
-          secret = assertUbuntuPspSecret(process.env.UA_PSP_WEBHOOK_SECRET || "")
+          if (paystackConfigured()) {
+            paystackSecret = assertUbuntuPaystackSecret(process.env.UA_PAYSTACK_SECRET_KEY || "")
+          } else {
+            secret = assertUbuntuPspSecret(process.env.UA_PSP_WEBHOOK_SECRET || "")
+          }
         } catch (err) {
-          return gateError(503, err instanceof Error ? err.message : "UA_PSP_WEBHOOK_SECRET is required")
+          return gateError(503, err instanceof Error ? err.message : "Ubuntu PSP secret is required")
         }
 
         try {
@@ -81,6 +88,27 @@ export const Route = createFileRoute("/api/payments/initiate")({
 
           const amount = bookPaymentAmount(existing[totalField])
           const paymentId = randomUUID()
+          if (paystackSecret) {
+            const origin = new URL(request.url).origin
+            const started = await initializeUbuntuPaystackPayment({
+              secret: paystackSecret,
+              email: String(member.email || ""),
+              amount,
+              kind,
+              orderId,
+              paymentId,
+              callbackUrl: `${origin}/dashboard/pay?kind=${encodeURIComponent(kind)}&orderId=${encodeURIComponent(orderId)}`,
+            })
+            return Response.json(memberPaymentInitiateResponse({
+              paymentId: started.reference || paymentId,
+              orderId,
+              kind,
+              amount,
+              signature: "",
+              provider: UA_PAYSTACK_PROVIDER,
+              authorizationUrl: started.authorizationUrl,
+            }))
+          }
           const signature = signMemberPaymentTicket(secret, { paymentId, orderId, kind, amount })
           return Response.json(memberPaymentInitiateResponse({ paymentId, orderId, kind, amount, signature }))
         } catch (err) {

@@ -1,6 +1,7 @@
 /** Named Ubuntu member payment gate for CARD, FRACTION, and MARKETPLACE. NFT stays closed. */
 
 import { signUbuntuPspWebhook, UA_PSP_PROVIDER } from "./ubuntuPsp.mjs"
+import { UA_PAYSTACK_PROVIDER } from "./ubuntuPaystack.mjs"
 import { formatMoney2, parseMoney } from "./money.mjs"
 
 export const NAMED_OPEN_SENTENCE = "open Ubuntu member payment gate for CARD and FRACTION"
@@ -18,6 +19,7 @@ export function memberPaymentGateFlags() {
     checkoutEnabled: MEMBER_PAYMENT_GATE === true,
     purchaseOpen: "CARD,FRACTION,MARKETPLACE",
     provider: UA_PSP_PROVIDER,
+    namedProvider: UA_PAYSTACK_PROVIDER,
   }
 }
 
@@ -64,25 +66,29 @@ export function signMemberPaymentTicket(secret, { paymentId, orderId, kind, amou
   })
 }
 
-export function memberPaymentInitiateResponse({ paymentId, orderId, kind, amount, signature }) {
+export function memberPaymentInitiateResponse({ paymentId, orderId, kind, amount, signature, provider, authorizationUrl }) {
   const flags = memberPaymentGateFlags()
+  const authorization = authorizationUrl ? String(authorizationUrl) : ""
   return {
     ok: true,
+    ...flags,
     kind: assertMemberPaymentKind(kind),
     orderId: String(orderId),
     paymentId: String(paymentId),
     amount: bookPaymentAmount(amount),
     currency: "USD",
-    signature: String(signature),
-    provider: UA_PSP_PROVIDER,
-    next: "complete",
-    ...flags,
+    signature: signature == null ? "" : String(signature),
+    provider: provider ? String(provider) : flags.provider,
+    authorizationUrl: authorization || null,
+    next: authorization ? "paystack" : "complete",
   }
 }
 
-export function memberPaymentCompleteResponse({ order, paymentId, settled, idempotent }) {
+export function memberPaymentCompleteResponse({ order, paymentId, settled, idempotent, provider }) {
+  const flags = memberPaymentGateFlags()
   return {
     ok: true,
+    ...flags,
     kind: String(order.kind || ""),
     order: {
       id: String(order.id),
@@ -93,7 +99,6 @@ export function memberPaymentCompleteResponse({ order, paymentId, settled, idemp
     },
     settled: settled === true,
     idempotent: idempotent === true,
-    provider: UA_PSP_PROVIDER,
-    ...memberPaymentGateFlags(),
+    provider: provider ? String(provider) : flags.provider,
   }
 }

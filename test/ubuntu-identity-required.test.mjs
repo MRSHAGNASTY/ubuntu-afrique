@@ -23,5 +23,5 @@ test("Wave F identity lock names MRSHAGNASTY and forbids origin push", () => {
   assert.match(rule, /alwaysApply: true/)
   assert.match(rule, /ubuntu-fork/)
   assert.match(rule, /review, comment, and merge/)
-  assert.equal(pkg.version, "0.1.64")
+  assert.equal(pkg.version, "0.1.65")
 })

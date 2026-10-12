@@ -5,6 +5,7 @@ export const Route = createFileRoute("/dashboard/pay")({
   validateSearch: (search: Record<string, unknown>) => ({
     kind: typeof search.kind === "string" ? search.kind : "",
     orderId: typeof search.orderId === "string" ? search.orderId : "",
+    reference: typeof search.reference === "string" ? search.reference : typeof search.trxref === "string" ? search.trxref : "",
   }),
   component: PayPage,
 })
@@ -35,13 +36,35 @@ function PayPage() {
       return
     }
     void load()
-  }, [search.kind, search.orderId])
+  }, [search.kind, search.orderId, search.reference])
 
   async function load() {
     setError("")
     setTicket(null)
     setResult(null)
     try {
+      if (search.kind && search.orderId && search.reference) {
+        const res = await fetch("/api/payments/complete", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            kind: search.kind,
+            orderId: search.orderId,
+            paymentId: search.reference,
+          }),
+        })
+        const json = await res.json()
+        if (res.status === 401) {
+          navigate({ to: "/auth/login", search: { next: "/dashboard/pay" } })
+          return
+        }
+        if (!json.ok) {
+          setError(json.error || "Paystack verify failed")
+          return
+        }
+        setResult(json.order)
+        return
+      }
       if (search.kind && search.orderId) {
         const res = await fetch("/api/payments/initiate", {
           method: "POST",
@@ -80,6 +103,10 @@ function PayPage() {
     if (!ticket) return
     if (!sessionToken()) {
       navigate({ to: "/auth/login", search: { next: "/dashboard/pay" } })
+      return
+    }
+    if (ticket.authorizationUrl) {
+      window.location.assign(String(ticket.authorizationUrl))
       return
     }
     setBusy(true)
@@ -125,7 +152,7 @@ function PayPage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Pay CARD, FRACTION, or MARKETPLACE</h1>
         <p className="mt-2 text-muted-foreground">
-          Ubuntu staging PSP only. Sign in on this host first. Amount comes from the Ubuntu book. NFT stays closed.
+          Paystack on this host. Amount comes from the Ubuntu book. Dummy staging only if Paystack keys are absent. NFT stays closed.
         </p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {result && (
@@ -144,7 +171,7 @@ function PayPage() {
               onClick={() => void pay()}
               className="mt-6 rounded-md border border-gold/50 px-6 py-2 font-semibold text-gold hover:bg-gold/10 disabled:opacity-50"
             >
-              Pay Ubuntu staging
+              {ticket.authorizationUrl ? "Pay with Paystack" : "Pay Ubuntu staging"}
             </button>
           </section>
         )}

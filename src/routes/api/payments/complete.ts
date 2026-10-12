@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { persistUbuntuPspWebhook } from "../../../lib/persistPsp.server"
 import { persistMemberPaymentSettle } from "../../../lib/persistMemberPaymentSettle.server"
+import { persistPaymentEvent } from "../../../lib/persistPayment.server"
+import { verifyUbuntuPaystackReference } from "../../../lib/persistPaystack.server"
 import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
 import { assertUbuntuPspSecret } from "../../../lib/ubuntuPsp.mjs"
+import { assertUbuntuPaystackSecret, paystackConfigured, UA_PAYSTACK_PROVIDER } from "../../../lib/ubuntuPaystack.mjs"
 import { bearerToken, resolveSessionMember } from "../../../lib/resolveUbuntuSessionMember.server"
 import {
   assertMemberPaymentGateNamed,
@@ -40,8 +43,9 @@ export const Route = createFileRoute("/api/payments/complete")({
         const orderId = String(body.orderId || "").trim()
         const paymentId = String(body.paymentId || "").trim()
         const signature = String(body.signature || "").trim()
-        if (!orderId || !paymentId || !signature) {
-          return gateError(400, "orderId, paymentId, and signature are required")
+        const usePaystack = paystackConfigured()
+        if (!orderId || !paymentId || (!usePaystack && !signature)) {
+          return gateError(400, usePaystack ? "orderId and paymentId are required" : "orderId, paymentId, and signature are required")
         }
 
         const token = bearerToken(request)
@@ -55,11 +59,16 @@ export const Route = createFileRoute("/api/payments/complete")({
         }
         if (!ubuntu) return gateError(503, "Ubuntu Afrique database is not configured")
 
-        let secret
+        let secret = ""
+        let paystackSecret = ""
         try {
-          secret = assertUbuntuPspSecret(process.env.UA_PSP_WEBHOOK_SECRET || "")
+          if (usePaystack) {
+            paystackSecret = assertUbuntuPaystackSecret(process.env.UA_PAYSTACK_SECRET_KEY || "")
+          } else {
+            secret = assertUbuntuPspSecret(process.env.UA_PSP_WEBHOOK_SECRET || "")
+          }
         } catch (err) {
-          return gateError(503, err instanceof Error ? err.message : "UA_PSP_WEBHOOK_SECRET is required")
+          return gateError(503, err instanceof Error ? err.message : "Ubuntu PSP secret is required")
         }
 
         try {
@@ -77,6 +86,31 @@ export const Route = createFileRoute("/api/payments/complete")({
           const amount = bookPaymentAmount(
             kind === "CARD" ? existing.total : kind === "FRACTION" ? existing.total_amount : existing.retail_price
           )
+          if (paystackSecret) {
+            const verified = await verifyUbuntuPaystackReference({ secret: paystackSecret, reference: paymentId })
+            if (verified.orderId !== orderId || verified.kind !== kind) {
+              return gateError(409, "Paystack payment does not match this Ubuntu order")
+            }
+            if (verified.amount !== amount) {
+              return gateError(409, "Paystack amount does not match the Ubuntu book")
+            }
+            await persistPaymentEvent(ubuntu, verified)
+            const settled = await persistMemberPaymentSettle(ubuntu, {
+              kind,
+              orderId,
+              paymentId: verified.paymentId,
+              existing,
+            })
+            return Response.json(
+              memberPaymentCompleteResponse({
+                order: settled.order,
+                paymentId: verified.paymentId,
+                settled: true,
+                idempotent: settled.idempotent === true,
+                provider: UA_PAYSTACK_PROVIDER,
+              })
+            )
+          }
           await persistUbuntuPspWebhook(ubuntu, {
             secret,
             signature,
