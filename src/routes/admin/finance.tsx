@@ -91,6 +91,18 @@ function AdminFinancePage() {
             <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground">
               Admin home
             </Link>
+            <Link to="/admin/cards" className="text-sm text-muted-foreground hover:text-foreground">
+              Cards
+            </Link>
+            <Link to="/admin/fractions" className="text-sm text-muted-foreground hover:text-foreground">
+              Fractions
+            </Link>
+            <Link to="/admin/kyc" className="text-sm text-muted-foreground hover:text-foreground">
+              KYC
+            </Link>
+            <Link to="/admin/ranks" className="text-sm text-muted-foreground hover:text-foreground">
+              Ranks
+            </Link>
             <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
               User dashboard
             </Link>

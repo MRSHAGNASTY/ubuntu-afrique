@@ -7,6 +7,15 @@ export const Route = createFileRoute("/admin/")({
   component: AdminPage,
 })
 
+const DESKS = [
+  { to: "/admin/finance", role: "FINANCE", title: "Finance", detail: "Ledger and commerce totals" },
+  { to: "/admin/cards", role: "CARD", title: "Cards", detail: "Orders, fulfilment, refund" },
+  { to: "/admin/fractions", role: "SHARE", title: "Fractions", detail: "Orders, liability remit, refund" },
+  { to: "/admin/kyc", role: "KYC", title: "KYC", detail: "Ubuntu review only" },
+  { to: "/admin/ranks", role: "SUPPORT", title: "Ranks", detail: "Progress and promote" },
+  { to: "/admin/reports", role: "FINANCE", title: "Reports", detail: "Wave P — not built yet" },
+] as const
+
 function AdminPage() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<AureusMemberProfile | null>(null)
@@ -26,7 +35,7 @@ function AdminPage() {
       }
       const member = current.profile
       if (!isAureusAdmin(member)) {
-        setError("This Aureus account is not an administrator.")
+        setError("This account is not an administrator.")
         return
       }
       setProfile(member)
@@ -51,7 +60,7 @@ function AdminPage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <span className="font-display text-lg font-semibold text-gold">Ubuntu Afrique Admin</span>
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
-            User dashboard
+            Member book
           </Link>
         </div>
       </nav>
@@ -59,22 +68,29 @@ function AdminPage() {
         {error && <p className="text-red-400">{error}</p>}
         {profile && (
           <div className="space-y-6">
-            <h1 className="font-display text-3xl font-bold">Aureus administration</h1>
+            <h1 className="font-display text-3xl font-bold">Ubuntu Afrique administration</h1>
             <p className="text-muted-foreground">
-              Read-only view of your Aureus Africa admin identity. Ubuntu Afrique does not write Aureus tables.
+              Desks use the Preview confirm secret or an Ubuntu role (FINANCE, KYC, CARD, SHARE, MARKETPLACE, SUPPORT).
+              Ubuntu Afrique does not write Aureus tables. Marketplace and NFT stay closed.
             </p>
             <div className="rounded-2xl border border-border bg-card p-6 space-y-3">
-              <Row label="Aureus user ID" value={String(profile.id)} />
+              <Row label="Aureus identity (read-only)" value={String(profile.id)} />
               <Row label="Username" value={profile.username} />
               <Row label="Email" value={profile.email} />
-              <Row label="Role" value={profile.role || "admin"} />
-              <Row label="Full name" value={profile.full_name || "-"} />
             </div>
-            <p>
-              <Link to="/admin/finance" className="text-gold hover:underline">
-                Finance (read-only)
-              </Link>
-            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              {DESKS.map((desk) => (
+                <Link
+                  key={desk.to}
+                  to={desk.to}
+                  className="rounded-2xl border border-border bg-card p-6 hover:border-gold/50"
+                >
+                  <div className="text-xs uppercase tracking-widest text-gold">{desk.role}</div>
+                  <div className="mt-2 font-display text-xl font-semibold">{desk.title}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{desk.detail}</div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </main>
