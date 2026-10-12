@@ -8,7 +8,7 @@ export const Route = createFileRoute("/dashboard/kyc")({
 const KYC_STATUSES = ["PENDING", "COMPLETED", "REJECTED"] as const
 
 function sessionToken() {
-  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || "" : ""
+  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || "" : ""
 }
 
 function authHeaders() {

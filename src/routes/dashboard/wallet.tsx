@@ -37,7 +37,7 @@ function WalletLedgerPage() {
   async function loadWallet() {
     setError("")
     try {
-      const token = typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || "" : ""
+      const token = typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || "" : ""
       if (!token) {
         navigate({ to: "/auth/login" })
         return

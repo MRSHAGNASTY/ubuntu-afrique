@@ -71,7 +71,7 @@ function RegisterPage() {
             </Link>
             <h1 className="mt-6 font-display text-3xl font-bold">Create Account</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Join Ubuntu Afrique
+              Join Ubuntu Afrique. After login: dashboard, then KYC, then cards or fractions. KYC does not block CARD or FRACTION pay.
             </p>
           </div>
 
@@ -142,6 +142,29 @@ function RegisterPage() {
                   placeholder="Re-enter password"
                 />
               </div>
+              <div>
+                <label htmlFor="sponsorCode" className="block text-sm font-medium mb-2">
+                  Sponsor username or member id
+                </label>
+                <input
+                  id="sponsorCode"
+                  type="text"
+                  value={formData.sponsorCode}
+                  onChange={(e) => setFormData({ ...formData, sponsorCode: e.target.value })}
+                  className="w-full rounded-lg border border-border bg-surface px-4 py-3 text-foreground placeholder:text-muted-foreground focus:border-gold focus:outline-none focus:ring-1 focus:ring-gold"
+                  placeholder="From ?ref= or type a Ubuntu username / ua_users.id"
+                />
+              </div>
+              <label className="flex items-start gap-3 text-sm text-muted-foreground">
+                <input
+                  id="agreed"
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>I accept the Ubuntu Afrique terms. New accounts stay on the Ubuntu book. No Aureus write.</span>
+              </label>
             </div>
 
             <button
@@ -153,7 +176,7 @@ function RegisterPage() {
             </button>
           </form>
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            New Ubuntu Afrique accounts are stored on the Ubuntu Afrique database. Linking them into live Aureus Africa login is queued and is not written to Aureus until that identity step is explicitly approved.
+            New Ubuntu Afrique accounts write ua_users and ua_sponsor_tree only. First-run path: login, dashboard, KYC, then cards or invest. KYC does not block CARD or FRACTION pay.
           </p>
         </div>
       </div>

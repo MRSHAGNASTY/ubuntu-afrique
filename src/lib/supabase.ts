@@ -79,22 +79,17 @@ export const auth = {
 
   async signUp(email: string, password: string, username: string, sponsorCode?: string) {
     requireUbuntu()
-    const { data: authData, error: authError } = await ubuntu.auth.signUp({ email, password })
-    if (authError) throw authError
-    if (!authData.user) throw new Error("User creation failed")
-
-    const { error: userError } = await ubuntu.from("ua_users").insert({
-      auth_user_id: authData.user.id,
-      email,
-      username,
-      sponsor_code: sponsorCode || null,
-      is_active: true,
-      identity_source: "ubuntu",
-      pending_aureus_provision: true,
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, username, sponsorCode: sponsorCode || "" }),
     })
-    if (userError) throw userError
-    return { ...authData, identitySource: "ubuntu" as const, pendingAureusProvision: true }
-  },
+    const json = await res.json().catch(() => null)
+    if (!json?.ok) throw new Error(json?.error || "Ubuntu civilian register failed")
+    const { data, error } = await ubuntu.auth.signInWithPassword({ email, password })
+    if (error) throw new Error(error.message || "Sign in after register failed")
+    return { ...data, identitySource: "ubuntu" as const, pendingAureusProvision: false, userId: json.userId }
+  }
 
   async signOut() {
     localStorage.removeItem("ua_session")

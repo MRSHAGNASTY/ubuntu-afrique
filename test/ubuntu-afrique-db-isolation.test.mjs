@@ -6,8 +6,9 @@ assert.match(identityLock, /No Post On Sunday/, "Wave F identity lock names the 
 assert.match(identityLock, /Do not push/, "Wave F identity lock forbids origin push")
 
 const supabase = readFileSync(new URL("../src/lib/supabase.ts", import.meta.url), "utf8")
-assert.match(supabase, /ubuntu\.from\(["']ua_users["']\)\.insert/, "signup writes Ubuntu ua_users only")
-assert.match(supabase, /pending_aureus_provision:\s*true/, "new Ubuntu users are queued for Aureus identity, not written live")
+assert.match(supabase, /\/api\/auth\/register/, "signup persists via Ubuntu civilian register API")
+assert.doesNotMatch(supabase, /ubuntu\.from\(["']ua_users["']\)\.insert/, "client signup no longer inserts ua_users")
+assert.match(supabase, /pendingAureusProvision:\s*false/, "civilian users stay Ubuntu-only")
 assert.match(supabase, /\/api\/ua-login/, "Aureus users sign in through official Aureus initiate-login, not Supabase Auth")
 assert.doesNotMatch(supabase, /aureusRead\.auth\.signInWithPassword/, "client no longer uses Aureus Supabase Auth password grant")
 assert.doesNotMatch(supabase, /user_projects/, "no Aureus user_projects writes")
@@ -79,6 +80,7 @@ assert.match(aureusAdmin, /apikey/, "Aureus REST sends apikey header")
 
 const affiliate = readFileSync(new URL("../src/routes/affiliate/index.tsx", import.meta.url), "utf8")
 assert.match(affiliate, /ua_users/, "affiliate reads Ubuntu users")
+assert.match(affiliate, /username \|\| userId/, "affiliate referral uses Ubuntu username or user id")
 assert.doesNotMatch(affiliate, /project_id/, "affiliate does not query Aureus project_id")
 assert.match(affiliate, /SSA/, "affiliate shows corporate ranks")
 assert.doesNotMatch(affiliate, /10% USDT/, "legacy 10% USDT copy removed")
@@ -619,3 +621,35 @@ assert.match(reportApi, /UA_COMMERCE_CONFIRM_SECRET/, "admin reports are secret-
 assert.doesNotMatch(reportApi, /insert\(/, "admin reports do not insert")
 
 console.log("ubuntu-afrique-db-isolation.test.mjs: OK")
+
+
+const onboardEngine = readFileSync(new URL("../src/lib/ubuntuOnboarding.mjs", import.meta.url), "utf8")
+assert.match(onboardEngine, /resolveSponsorRef/, "civilian engine resolves sponsor username or id")
+assert.match(onboardEngine, /buildCivilianOnboard/, "civilian engine builds Ubuntu-only onboard")
+assert.match(onboardEngine, /not AA777/, "civilian engine refuses AA777 as the new user")
+assert.match(onboardEngine, /kycGatesPay: false/, "civilian first-run does not KYC-gate pay")
+assert.doesNotMatch(onboardEngine, /fgubaqoftdeefcakejwu/, "civilian engine never targets Aureus")
+
+const persistOnboard = readFileSync(new URL("../src/lib/persistCivilianOnboard.server.ts", import.meta.url), "utf8")
+assert.match(persistOnboard, /from\("ua_users"\)/, "civilian persist writes Ubuntu ua_users")
+assert.match(persistOnboard, /ua_sponsor_tree/, "civilian persist writes Ubuntu sponsor tree")
+assert.match(persistOnboard, /pending_aureus_provision: false/, "civilian persist is not queued onto Aureus")
+assert.doesNotMatch(persistOnboard, /from\("users"\)/, "civilian persist does not write Aureus users")
+assert.doesNotMatch(persistOnboard, /user_projects/, "civilian persist does not write Aureus user_projects")
+assert.doesNotMatch(persistOnboard, /fgubaqoftdeefcakejwu/, "civilian persist never targets Aureus")
+assert.doesNotMatch(persistOnboard, /aureus_user_id:/, "civilian persist never sets aureus_user_id")
+
+const registerApi = readFileSync(new URL("../src/routes/api/auth/register.ts", import.meta.url), "utf8")
+assert.match(registerApi, /persistCivilianOnboard/, "register API persists Ubuntu book")
+assert.match(registerApi, /admin.createUser/, "register API creates Ubuntu auth user")
+assert.doesNotMatch(registerApi, /fgubaqoftdeefcakejwu/, "register API never targets Aureus")
+
+const registerPage = readFileSync(new URL("../src/routes/auth/register.tsx", import.meta.url), "utf8")
+assert.match(registerPage, /sponsorCode/, "register form has sponsor field")
+assert.match(registerPage, /type="checkbox"/, "register form has terms checkbox")
+assert.match(registerPage, /KYC does not block/, "register copy does not KYC-gate pay")
+
+assert.match(dashboard, /\/api\/member\/kyc/, "dashboard reads Ubuntu KYC status")
+assert.match(dashboard, /KYC status/, "dashboard shows KYC status")
+assert.match(dashboard, /KYC does not block/, "dashboard does not KYC-gate CARD or FRACTION")
+assert.doesNotMatch(dashboard, /kycStatus === "COMPLETED"/, "dashboard does not hide cards or invest behind completed KYC")

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/dashboard/pay")({
 })
 
 function sessionToken() {
-  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || "" : ""
+  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || "" : ""
 }
 
 function authHeaders() {

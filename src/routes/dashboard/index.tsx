@@ -40,6 +40,7 @@ function DashboardPage() {
   const [displayName, setDisplayName] = useState("Member");
   const [loading, setLoading] = useState(true);
   const [aureusReadOnlyNote, setAureusReadOnlyNote] = useState(false);
+  const [kycStatus, setKycStatus] = useState("NONE");
 
   useEffect(() => {
     fetchDashboardData();
@@ -67,7 +68,7 @@ function DashboardPage() {
         setDisplayName(current.user.email || "Member");
       }
 
-      let token = typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") : null;
+      let token = typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") : null;
       if (!token) {
         const { data } = await ubuntuDb.auth.getSession();
         token = data.session?.access_token || null;
@@ -77,10 +78,14 @@ function DashboardPage() {
         return;
       }
 
-      const res = await fetch("/api/member/ledger", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const headers = { Authorization: `Bearer ${token}` };
+      const [res, kycRes] = await Promise.all([
+        fetch("/api/member/ledger", { headers }),
+        fetch("/api/member/kyc", { headers }),
+      ]);
       const json = await res.json();
+      const kycJson = await kycRes.json().catch(() => null);
+      setKycStatus(String(kycJson?.kyc?.status || "NONE"));
       setOverview({
         ok: Boolean(json.ok),
         error: json.error,
@@ -154,12 +159,28 @@ function DashboardPage() {
           <p className="mt-2 text-muted-foreground">
             Welcome back, {overview?.username || displayName} — Ubuntu Afrique ledger
           </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            First-run path: complete KYC, then buy cards or fractions. KYC does not block CARD or FRACTION pay.
+          </p>
           {aureusReadOnlyNote && (
             <p className="mt-2 text-sm text-gold/80">
               Aureus Africa login is read-only. Money, rank, cards, and fractions on this page come from the Ubuntu book only.
             </p>
           )}
         </div>
+
+        
+            <div className="mb-8 rounded-2xl border border-gold/30 bg-gold/5 p-6">
+              <h2 className="font-display text-lg font-semibold">KYC status</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {kycStatus === "NONE" ? "Not submitted" : kycStatus}. Open KYC, then cards or invest. Pay stays open.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <a href="/dashboard/kyc" className="rounded-md bg-gold-gradient px-4 py-2 text-sm font-semibold text-primary-foreground">Open KYC</a>
+                <a href="/dashboard/cards" className="rounded-md border border-gold/50 px-4 py-2 text-sm font-semibold text-gold">Cards</a>
+                <a href="/dashboard/invest" className="rounded-md border border-gold/50 px-4 py-2 text-sm font-semibold text-gold">Fractions</a>
+              </div>
+            </div>
 
         {missingBook ? (
           <div className="rounded-2xl border border-border bg-card p-8">

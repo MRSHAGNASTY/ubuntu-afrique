@@ -27,6 +27,8 @@ function LoginPage() {
       localStorage.setItem("auth_token", data.session?.access_token || "");
       if (search.next === "/dashboard/pay") {
         navigate({ to: "/dashboard/pay" });
+      } else if (search.next === "/dashboard/kyc") {
+        navigate({ to: "/dashboard/kyc" });
       } else {
         navigate({ to: "/dashboard" });
       }

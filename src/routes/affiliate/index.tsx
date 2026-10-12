@@ -9,12 +9,13 @@ export const Route = createFileRoute("/affiliate/")({
 type DirectRow = { userId: string; username: string; email: string; rank: string }
 
 function sessionToken() {
-  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || "" : ""
+  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || "" : ""
 }
 
 function AffiliatePage() {
   const navigate = useNavigate()
   const [username, setUsername] = useState("")
+  const [userId, setUserId] = useState("")
   const [directs, setDirects] = useState<DirectRow[]>([])
   const [teamMemberCount, setTeamMemberCount] = useState(0)
   const [currentRank, setCurrentRank] = useState("SSA")
@@ -58,6 +59,7 @@ function AffiliatePage() {
         return
       }
       setUsername(String(ledger.username || network.userId || "member"))
+      setUserId(String(ledger.userId || network.userId || ""))
       setDirects(network.directs || [])
       setTeamMemberCount(Number(network.teamMemberCount) || 0)
       setCurrentRank(String(network.currentRank || "SSA"))
@@ -72,7 +74,7 @@ function AffiliatePage() {
   }
 
   const origin = typeof window !== "undefined" ? window.location.origin : ""
-  const referralLink = `${origin}/auth/register?ref=${encodeURIComponent(username || "")}`
+  const referralLink = `${origin}/auth/register?ref=${encodeURIComponent(username || userId || "")}`
 
   function copyReferralLink() {
     navigator.clipboard.writeText(referralLink)

@@ -29,7 +29,7 @@ function NftShareholderPage() {
       if (listingJson.ok) setListings(listingJson.listings || [])
       const ledgerRes = await fetch("/api/member/ledger", {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("ua_session") || ""}`,
+          Authorization: `Bearer ${localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || ""}`,
         },
       })
       const ledger = await ledgerRes.json()

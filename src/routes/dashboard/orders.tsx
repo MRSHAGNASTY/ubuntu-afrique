@@ -32,7 +32,7 @@ type FractionOrder = {
 }
 
 function sessionToken() {
-  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || "" : ""
+  return typeof localStorage !== "undefined" ? localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || "" : ""
 }
 
 function MemberOrdersPage() {

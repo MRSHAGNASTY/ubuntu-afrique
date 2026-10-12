@@ -57,7 +57,7 @@ function InvestPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("ua_session") || ""}`,
+          Authorization: `Bearer ${localStorage.getItem("ua_session") || localStorage.getItem("auth_token") || ""}`,
         },
         body: JSON.stringify({ quantity: fractionQty }),
       });
