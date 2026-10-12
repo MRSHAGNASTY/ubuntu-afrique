@@ -13,7 +13,7 @@ const DESKS = [
   { to: "/admin/fractions", role: "SHARE", title: "Fractions", detail: "Orders, liability remit, refund" },
   { to: "/admin/kyc", role: "KYC", title: "KYC", detail: "Ubuntu review only" },
   { to: "/admin/ranks", role: "SUPPORT", title: "Ranks", detail: "Progress and promote" },
-  { to: "/admin/reports", role: "FINANCE", title: "Reports", detail: "Wave P — not built yet" },
+  { to: "/admin/reports", role: "FINANCE", title: "Reports", detail: "Date-range Ubuntu book" },
 ] as const
 
 function AdminPage() {

@@ -136,6 +136,7 @@ function DashboardPage() {
             <a href="/dashboard/invest" className="text-sm text-muted-foreground hover:text-foreground">Fractions</a>
             <a href="/dashboard/pay" className="text-sm text-muted-foreground hover:text-foreground">Pay</a>
             <a href="/dashboard/kyc" className="text-sm text-muted-foreground hover:text-foreground">KYC</a>
+            <a href="/dashboard/notifications" className="text-sm text-muted-foreground hover:text-foreground">Notifications</a>
             <a href="/marketplace" className="text-sm text-muted-foreground hover:text-foreground">Marketplace</a>
             <a href="/dashboard/nft" className="text-sm text-muted-foreground hover:text-foreground">NFT</a>
             <a href="/affiliate" className="text-sm text-muted-foreground hover:text-foreground">Affiliate</a>

@@ -600,4 +600,16 @@ assert.match(marketSettle, /processGapCover/, "marketplace settlement uses share
 assert.match(marketSettle, /STANDARD_25/, "marketplace settlement is STANDARD_25 only")
 assert.doesNotMatch(marketSettle, /CUSTOM_30/, "marketplace settlement has no second plan")
 
+const schema23 = readFileSync(new URL("../supabase/ubuntu-only/0023_ua_notifications.sql", import.meta.url), "utf8")
+assert.match(schema23, /NEVER run this on Aureus production/, "0023 refuses Aureus")
+assert.match(schema23, /NEVER run on Aureus fgubaqoftdeefcakejwu/, "0023 names Aureus prod ref as refuse")
+assert.match(schema23, /ua_notifications/, "0023 adds Ubuntu notifications")
+assert.match(schema23, /in_app/, "0023 is in_app only")
+assert.match(schema23, /ENABLE ROW LEVEL SECURITY/, "0023 enables RLS like the rest of the Ubuntu book")
+
+const reportApi = readFileSync(new URL("../src/routes/api/admin/reports.ts", import.meta.url), "utf8")
+assert.match(reportApi, /checkoutEnabled: false/, "admin reports keep checkout closed")
+assert.match(reportApi, /UA_COMMERCE_CONFIRM_SECRET/, "admin reports are secret-gated")
+assert.doesNotMatch(reportApi, /insert\(/, "admin reports do not insert")
+
 console.log("ubuntu-afrique-db-isolation.test.mjs: OK")

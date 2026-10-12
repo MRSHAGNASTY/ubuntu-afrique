@@ -126,6 +126,23 @@ export async function persistMemberPaymentSettle(
     if (confirmed.volume) {
       await persistConfirmVolume(ubuntu, confirmed.volume)
     }
+    const { persistNotificationQuiet } = await import("./persistNotification.server")
+    const { notificationForCommission, notificationForPayment } = await import("./notificationEngine.mjs")
+    const buyerId = Number(confirmed.userId)
+    if (Number.isInteger(buyerId) && buyerId > 0) {
+      for (const note of notificationForPayment({ kind, orderId: confirmed.id, userId: buyerId })) {
+        await persistNotificationQuiet(ubuntu, note)
+      }
+    }
+    for (const payment of confirmed.gapCover.payments || []) {
+      const recipientId = Number(payment.recipientId || payment.userId)
+      if (!Number.isInteger(recipientId) || recipientId <= 0) continue
+      await persistNotificationQuiet(ubuntu, notificationForCommission({
+        userId: recipientId,
+        amount: payment.amount,
+        sourceTransactionId: confirmed.id,
+      }))
+    }
   }
 
   return { idempotent: false, order: confirmed }

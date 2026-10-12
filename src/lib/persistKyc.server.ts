@@ -129,6 +129,12 @@ export async function persistKycReview(
     targetId: reviewed.userId,
     detail: reviewed.reason,
   })
+  const { persistNotificationQuiet } = await import("./persistNotification.server")
+  const { notificationForKycReview } = await import("./notificationEngine.mjs")
+  await persistNotificationQuiet(ubuntu, notificationForKycReview({
+    userId: reviewed.userId,
+    status: reviewed.status,
+  }))
   return loadKycProfile(ubuntu, reviewed.userId)
 }
 

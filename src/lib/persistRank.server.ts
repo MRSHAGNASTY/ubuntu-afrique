@@ -77,5 +77,13 @@ export async function persistRankPromotion(
     throw new Error(promotionError.message)
   }
 
+  const { persistNotificationQuiet } = await import("./persistNotification.server")
+  const { notificationForRank } = await import("./notificationEngine.mjs")
+  await persistNotificationQuiet(ubuntu, notificationForRank({
+    userId,
+    fromRank: decision.from,
+    toRank: decision.to,
+  }))
+
   return { idempotent: false, from: decision.from, to: decision.to, promoted: true }
 }

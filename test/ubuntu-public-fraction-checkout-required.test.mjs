@@ -65,5 +65,5 @@ test("Wave L FRACTION page and other public buy routes stay closed", () => {
   assert.doesNotMatch(page, /\/api\/nft\/order/)
   assert.match(publicMarket, /Public checkout is not open/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.56")
+  assert.equal(pkg.version, "0.1.57")
 })
