@@ -299,7 +299,9 @@ const catalogPages = [
   "../src/routes/marketplace/category/$slug.tsx",
   "../src/routes/admin/marketplace.tsx",
   "../src/routes/nft/index.tsx",
+  "../src/routes/nft/listing/$id.tsx",
   "../src/routes/dashboard/nft.tsx",
+  "../src/routes/admin/nft.tsx",
 ]
 for (const page of catalogPages) {
   const source = readFileSync(new URL(page, import.meta.url), "utf8")

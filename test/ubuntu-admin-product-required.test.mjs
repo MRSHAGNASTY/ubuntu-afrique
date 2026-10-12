@@ -70,6 +70,6 @@ test("Wave O ranks desk does not auto-promote user 10", () => {
   assert.doesNotMatch(ranks, /fgubaqoftdeefcakejwu/)
 })
 
-test("Wave O version is 0.1.58", () => {
-  assert.equal(pkg.version, "0.1.58")
+test("Wave O version is 0.1.59", () => {
+  assert.equal(pkg.version, "0.1.59")
 })

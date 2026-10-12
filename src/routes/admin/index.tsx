@@ -15,6 +15,7 @@ const DESKS = [
   { to: "/admin/ranks", role: "SUPPORT", title: "Ranks", detail: "Progress and promote" },
   { to: "/admin/reports", role: "FINANCE", title: "Reports", detail: "Date-range Ubuntu book" },
   { to: "/admin/marketplace", role: "MARKETPLACE", title: "Marketplace", detail: "Companies, products, media. Buy stays 403" },
+  { to: "/admin/nft", role: "MARKETPLACE", title: "NFT", detail: "Assets and recon. Buy stays 403" },
 ] as const
 
 function AdminPage() {

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { getUbuntuServerClient } from "../../../../lib/ubuntuServer.server"
-import { persistNftAsset } from "../../../../lib/persistNft.server"
+import { loadNftAssets, persistNftAsset } from "../../../../lib/persistNft.server"
 
 function authorize(request: Request, body: Record<string, unknown>) {
   const expected = String(process.env.UA_COMMERCE_CONFIRM_SECRET || "")
@@ -16,6 +16,32 @@ function authorize(request: Request, body: Record<string, unknown>) {
 export const Route = createFileRoute("/api/admin/nft/assets")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const url = new URL(request.url)
+        const auth = authorize(request, { confirmSecret: String(url.searchParams.get("confirmSecret") || "") })
+        if (!auth.ok) {
+          return Response.json({ ok: false, error: auth.error, checkoutEnabled: false }, { status: auth.status })
+        }
+        let ubuntu
+        try {
+          ubuntu = getUbuntuServerClient()
+        } catch (err) {
+          return Response.json({
+            ok: false,
+            error: err instanceof Error ? err.message : "Ubuntu read refused",
+            checkoutEnabled: false,
+          }, { status: 500 })
+        }
+        if (!ubuntu) {
+          return Response.json({
+            ok: false,
+            error: "Ubuntu Afrique database is not configured",
+            checkoutEnabled: false,
+          }, { status: 503 })
+        }
+        const assets = await loadNftAssets(ubuntu)
+        return Response.json({ ok: true, assets, checkoutEnabled: false, nftMarketplaceEnabled: false })
+      },
       POST: async ({ request }) => {
         const body = await request.json().catch(() => ({})) as Record<string, unknown>
         const auth = authorize(request, body)

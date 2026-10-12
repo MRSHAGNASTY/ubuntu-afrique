@@ -85,6 +85,23 @@ export async function loadNftListings(ubuntu: SupabaseClient) {
   }))
 }
 
+export async function loadNftAssets(ubuntu: SupabaseClient) {
+  const { data, error } = await ubuntu
+    .from("ua_nft_assets")
+    .select("id, current_owner_id, original_seller_id, resale_count, status")
+    .order("id", { ascending: true })
+  if (error) throw new Error(error.message)
+  return (data || []).map((row) => ({
+    id: String(row.id),
+    currentOwnerId: String(row.current_owner_id),
+    originalSellerId: row.original_seller_id == null ? null : String(row.original_seller_id),
+    resaleCount: Number(row.resale_count || 0),
+    status: String(row.status),
+    checkoutEnabled: false,
+    nftMarketplaceEnabled: false,
+  }))
+}
+
 export async function loadNftAssetsForOwner(ubuntu: SupabaseClient, ownerId: string) {
   const { data, error } = await ubuntu
     .from("ua_nft_assets")
