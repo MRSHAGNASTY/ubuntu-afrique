@@ -97,5 +97,5 @@ test("Wave P sources stay on Ubuntu and do not write money", () => {
   assert.match(settle, /notificationForPayment/)
   assert.doesNotMatch(schema, /INSERT INTO public\.users/)
   assert.doesNotMatch(adminApi, /fgubaqoftdeefcakejwu/)
-  assert.equal(pkg.version, "0.1.57")
+  assert.equal(pkg.version, "0.1.58")
 })

@@ -42,7 +42,7 @@ export async function persistMarketplaceProduct(
 export async function loadMarketplaceProducts(ubuntu: SupabaseClient) {
   const { data, error } = await ubuntu
     .from("ua_products")
-    .select("id, company_id, product_name, retail_price, company_payout, commissionable_value, qv, gap_schedule, active")
+    .select("id, company_id, product_type, product_name, sku, short_description, retail_price, company_payout, commissionable_value, qv, gap_schedule, inventory, active")
     .eq("product_type", "MARKETPLACE")
   if (error) throw new Error(error.message)
   return (data || []).map((row) => ({
@@ -54,6 +54,10 @@ export async function loadMarketplaceProducts(ubuntu: SupabaseClient) {
     commissionableValue: String(row.commissionable_value ?? "0"),
     qv: String(row.qv ?? "0"),
     gapSchedule: String(row.gap_schedule || "STANDARD_25"),
+    type: String(row.product_type || "MARKETPLACE"),
+    sku: row.sku == null ? "" : String(row.sku),
+    shortDescription: row.short_description == null ? "" : String(row.short_description),
+    inventory: row.inventory == null ? "" : String(row.inventory),
     active: row.active === true,
     checkoutEnabled: false,
   }))

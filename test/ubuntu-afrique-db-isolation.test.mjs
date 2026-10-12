@@ -294,6 +294,10 @@ const catalogPages = [
   "../src/routes/marketplace/index.tsx",
   "../src/routes/marketplace/company/$slug.tsx",
   "../src/routes/marketplace/dashboard.tsx",
+  "../src/routes/marketplace/products.tsx",
+  "../src/routes/marketplace/product/$slug.tsx",
+  "../src/routes/marketplace/category/$slug.tsx",
+  "../src/routes/admin/marketplace.tsx",
   "../src/routes/nft/index.tsx",
   "../src/routes/dashboard/nft.tsx",
 ]

@@ -40,6 +40,8 @@ function MarketplacePage() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <span className="font-display text-lg font-semibold text-gold">Ubuntu Afrique Marketplace</span>
           <div className="flex gap-6 text-sm">
+            <Link to="/marketplace/products" className="text-muted-foreground hover:text-foreground">Products</Link>
+            <Link to="/marketplace/dashboard" className="text-muted-foreground hover:text-foreground">Company desk</Link>
             <Link to="/dashboard" className="text-muted-foreground hover:text-foreground">Dashboard</Link>
             <Link to="/nft" className="text-muted-foreground hover:text-foreground">NFT preview</Link>
           </div>
@@ -72,8 +74,11 @@ function MarketplacePage() {
         <ul className="mt-4 space-y-3">
           {catalog.products.map((product) => (
             <li key={product.productId} className="rounded-xl border border-border bg-card p-4">
-              <span className="font-medium">{product.name}</span>
+              <Link to="/marketplace/product/$slug" params={{ slug: product.slug }} className="font-medium hover:text-gold">
+                {product.name}
+              </Link>
               <span className="ml-3 text-muted-foreground">${product.retailPrice}</span>
+              <span className="ml-3 text-xs text-muted-foreground">View only</span>
             </li>
           ))}
         </ul>
