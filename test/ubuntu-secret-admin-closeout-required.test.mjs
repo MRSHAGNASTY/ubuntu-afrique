@@ -96,5 +96,5 @@ test("Wave H remit API, 0008 seeds, and runner stay Ubuntu-only", {
   assert.match(persistLiability, /persistLiabilityRemitted/)
   assert.match(remitApi, /UA_COMMERCE_CONFIRM_SECRET/)
   assert.match(remitApi, /taken from the paid Ubuntu fraction/)
-  assert.equal(pkg.version, "0.1.62")
+  assert.equal(pkg.version, "0.1.63")
 })

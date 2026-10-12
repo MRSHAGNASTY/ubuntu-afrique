@@ -73,5 +73,5 @@ test("Wave V product page posts pending then pay; NFT stays 403", () => {
   assert.doesNotMatch(schema, /nft_marketplace_enabled', 'true'/)
   assert.match(publicNft, /Public checkout is not open/)
   assert.match(publicNft, /status: 403/)
-  assert.equal(pkg.version, "0.1.62")
+  assert.equal(pkg.version, "0.1.63")
 })

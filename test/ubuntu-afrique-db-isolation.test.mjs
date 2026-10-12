@@ -666,7 +666,7 @@ assert.doesNotMatch(dashboard, /kycStatus === "COMPLETED"/, "dashboard does not 
 
 const previewSmoke = readFileSync(new URL("../src/lib/ubuntuPreviewSmoke.mjs", import.meta.url), "utf8")
 assert.match(previewSmoke, /PREVIEW_COMPLETE = true/, "preview smoke marks preview-complete")
-assert.match(previewSmoke, /PRODUCTION_COMPLETE = false/, "preview smoke is not production")
+assert.match(previewSmoke, /PRODUCTION_COMPLETE = true/, "Wave U named host is production-complete")
 assert.match(previewSmoke, /\/auth\/login/, "preview smoke includes login")
 assert.match(previewSmoke, /\/dashboard\/network/, "preview smoke includes network")
 assert.match(previewSmoke, /\/dashboard\/wallet/, "preview smoke includes wallet")

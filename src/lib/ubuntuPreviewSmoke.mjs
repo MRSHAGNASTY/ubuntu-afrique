@@ -1,7 +1,7 @@
-/** Ubuntu Afrique preview smoke list. Orchestrator checklist only. Not Day 30. Not production. */
+/** Ubuntu Afrique smoke list. Wave U named host is ubuntu-afrique.vercel.app. NFT stays closed. */
 
 export const PREVIEW_COMPLETE = true
-export const PRODUCTION_COMPLETE = false
+export const PRODUCTION_COMPLETE = true
 
 export const PREVIEW_SMOKE = Object.freeze([
   { id: "login", path: "/auth/login", kind: "page" },

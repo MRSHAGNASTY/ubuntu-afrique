@@ -89,7 +89,7 @@ export const auth = {
     const { data, error } = await ubuntu.auth.signInWithPassword({ email, password })
     if (error) throw new Error(error.message || "Sign in after register failed")
     return { ...data, identitySource: "ubuntu" as const, pendingAureusProvision: false, userId: json.userId }
-  }
+  },
 
   async signOut() {
     localStorage.removeItem("ua_session")

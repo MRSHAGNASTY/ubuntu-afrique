@@ -72,7 +72,7 @@ test("Wave T CARD/FRACTION pages stay named-open and marketplace/NFT stay 403", 
 
 test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
   assert.equal(PREVIEW_COMPLETE, true)
-  assert.equal(PRODUCTION_COMPLETE, false)
+  assert.equal(PRODUCTION_COMPLETE, true)
   assert.deepEqual(previewSmokeIds(), [
     "login",
     "network",
@@ -92,5 +92,5 @@ test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
   assert.match(isolation, /fgubaqoftdeefcakejwu/)
   assert.match(isolation, /Ubuntu client refuses Aureus project ref/)
   assert.match(isolation, /will not connect to Aureus production/)
-  assert.equal(pkg.version, "0.1.62")
+  assert.equal(pkg.version, "0.1.63")
 })

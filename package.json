@@ -1,6 +1,6 @@
 {
   "name": "ubuntu-afrique",
-  "version": "0.1.62",
+  "version": "0.1.63",
   "private": true,
   "sideEffects": false,
   "type": "module",
