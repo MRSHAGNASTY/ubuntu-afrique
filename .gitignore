@@ -36,3 +36,4 @@ dist-ssr
 !.env.example
 backups/
 uat-artifacts/
+supabase/.temp/
