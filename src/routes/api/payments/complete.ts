@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/payments/complete")({
         try {
           kind = assertMemberPaymentKind(body.kind)
         } catch (err) {
-          return gateError(403, err instanceof Error ? err.message : "CARD and FRACTION only")
+          return gateError(403, err instanceof Error ? err.message : "CARD, FRACTION, and MARKETPLACE only")
         }
         const orderId = String(body.orderId || "").trim()
         const paymentId = String(body.paymentId || "").trim()
@@ -67,14 +67,16 @@ export const Route = createFileRoute("/api/payments/complete")({
           if (!member) return gateError(404, "Ubuntu member book not found")
           if (member.is_active !== true) return gateError(403, "Ubuntu user is not active")
 
-          const table = kind === "CARD" ? "ua_card_orders" : "ua_fraction_transactions"
-          const ownerField = kind === "CARD" ? "user_id" : "buyer_id"
+          const table = kind === "CARD" ? "ua_card_orders" : kind === "FRACTION" ? "ua_fraction_transactions" : "ua_marketplace_orders"
+          const ownerField = kind === "FRACTION" ? "buyer_id" : "user_id"
           const { data: existing, error } = await ubuntu.from(table).select("*").eq("id", orderId).maybeSingle()
           if (error) return gateError(500, error.message)
           if (!existing) return gateError(404, "Pending order not found")
-          if (Number(existing[ownerField]) !== Number(member.id)) return gateError(403, "Order is not in this Ubuntu member book")
+          if (String(existing[ownerField]) !== String(member.id)) return gateError(403, "Order is not in this Ubuntu member book")
 
-          const amount = bookPaymentAmount(kind === "CARD" ? existing.total : existing.total_amount)
+          const amount = bookPaymentAmount(
+            kind === "CARD" ? existing.total : kind === "FRACTION" ? existing.total_amount : existing.retail_price
+          )
           await persistUbuntuPspWebhook(ubuntu, {
             secret,
             signature,
@@ -99,21 +101,23 @@ export const Route = createFileRoute("/api/payments/complete")({
           const message = err instanceof Error ? err.message : "Payment complete failed"
           const raced = /duplicate|unique constraint|ua_qv_txn_source/i.test(message)
           if (raced) {
-            const racedTable = kind === "CARD" ? "ua_card_orders" : "ua_fraction_transactions"
+            const racedTable = kind === "CARD" ? "ua_card_orders" : kind === "FRACTION" ? "ua_fraction_transactions" : "ua_marketplace_orders"
             const { data: again } = await ubuntu
               .from(racedTable)
               .select("*")
               .eq("id", orderId)
               .maybeSingle()
-            const statusField = kind === "CARD" ? "order_status" : "transaction_status"
-            if (again && String(again[statusField] || "") === "PAID") {
+            const statusField = kind === "CARD" ? "order_status" : kind === "FRACTION" ? "transaction_status" : "status"
+            if (again && (String(again[statusField] || "") === "PAID" || String(again[statusField] || "") === "SETTLED")) {
               return Response.json(
                 memberPaymentCompleteResponse({
                   order: {
                     id: orderId,
                     kind,
                     status: "PAID",
-                    total: String(kind === "CARD" ? again.total : again.total_amount || ""),
+                    total: String(
+                      kind === "CARD" ? again.total : kind === "FRACTION" ? again.total_amount || "" : again.retail_price || ""
+                    ),
                   },
                   paymentId,
                   settled: true,

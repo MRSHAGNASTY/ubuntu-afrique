@@ -136,3 +136,90 @@ export async function persistMarketplaceSettlement(
   if (settleError) throw new Error(settleError.message)
   return { orderId: persistedId, status: "SETTLED" }
 }
+
+export async function persistPendingMarketplaceOrder(
+  ubuntu: SupabaseClient,
+  input: { orderId: string; userId: string; productId: string }
+) {
+  const productId = String(input.productId || "").trim()
+  if (!productId) throw new Error("productId is required")
+  const selectProduct = "id, company_id, product_type, product_name, retail_price, company_payout, commissionable_value, qv, gap_schedule, active, sku"
+  const { data: byId, error: productError } = await ubuntu
+    .from("ua_products")
+    .select(selectProduct)
+    .eq("id", productId)
+    .maybeSingle()
+  if (productError) throw new Error(productError.message)
+  let product = byId
+  if (!product) {
+    const { data: bySku, error: skuError } = await ubuntu
+      .from("ua_products")
+      .select(selectProduct)
+      .eq("sku", productId)
+      .maybeSingle()
+    if (skuError) throw new Error(skuError.message)
+    product = bySku
+  }
+  if (!product) throw new Error("Marketplace product not found")
+  if (product.active !== true) throw new Error("Marketplace product is not active")
+  if (String(product.product_type || "") !== "MARKETPLACE") {
+    throw new Error("Product is not a marketplace product")
+  }
+
+  const { data: company, error: companyError } = await ubuntu
+    .from("ua_marketplace_companies")
+    .select("id, is_active")
+    .eq("id", String(product.company_id || ""))
+    .maybeSingle()
+  if (companyError) throw new Error(companyError.message)
+  if (!company || company.is_active !== true) {
+    throw new Error("Marketplace company is not active")
+  }
+
+  const quoted = quoteMarketplaceProduct({
+    productId: String(product.id),
+    retailPrice: String(product.retail_price),
+    companyPayout: String(product.company_payout),
+    commissionableValue: String(product.commissionable_value || product.retail_price),
+    qv: String(product.qv || product.retail_price),
+    gapSchedule: String(product.gap_schedule || "STANDARD_25"),
+  })
+
+  const order = {
+    id: String(input.orderId),
+    companyId: String(product.company_id),
+    productId: quoted.productId,
+    userId: String(input.userId),
+    retailPrice: quoted.retailPrice,
+    companyPayout: quoted.companyPayout,
+    commissionableValue: quoted.commissionableValue,
+    qv: quoted.qv,
+    gapSchedule: "STANDARD_25",
+    status: "PENDING_PAYMENT",
+  }
+
+  const { data: existing, error: existingError } = await ubuntu
+    .from("ua_marketplace_orders")
+    .select("id, status")
+    .eq("id", order.id)
+    .maybeSingle()
+  if (existingError) throw new Error(existingError.message)
+  if (existing) {
+    return { order, persisted: true, idempotent: true }
+  }
+
+  const { error } = await ubuntu.from("ua_marketplace_orders").insert({
+    id: order.id,
+    company_id: order.companyId,
+    product_id: order.productId,
+    user_id: order.userId,
+    retail_price: order.retailPrice,
+    company_payout: order.companyPayout,
+    commissionable_value: order.commissionableValue,
+    qv: order.qv,
+    gap_schedule: "STANDARD_25",
+    status: "PENDING_PAYMENT",
+  })
+  if (error) throw new Error(error.message)
+  return { order, persisted: true, idempotent: false }
+}

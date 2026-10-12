@@ -144,7 +144,7 @@ function AdminMarketplacePage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Ubuntu marketplace</h1>
         <p className="mt-2 text-muted-foreground">
-          Companies, products, and media. Public buy stays 403. Do not settle live companies. marketplace_enabled stays false.
+          Companies, products, and media. Named marketplace checkout is open. Do not settle live companies from this desk. NFT stays closed.
         </p>
         <div className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
           <input type="password" autoComplete="off" value={confirmSecret} onChange={(e) => setConfirmSecret(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" placeholder="Paste confirm secret" />

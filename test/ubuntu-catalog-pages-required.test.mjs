@@ -31,8 +31,8 @@ test("Wave K catalog search and company slug render from Ubuntu data", {
   assert.equal(catalog.companies.length, 1)
   assert.equal(catalog.companies[0].id, "UAT_CO_WAVE_H")
   assert.equal(catalog.products[0].retailPrice, "100.00")
-  assert.equal(catalog.checkoutEnabled, false)
-  assert.equal(catalog.marketplaceEnabled, false)
+  assert.equal(catalog.checkoutEnabled, true)
+  assert.equal(catalog.marketplaceEnabled, true)
   assert.doesNotThrow(() => catalog.companies.forEach(assertNoAffiliateLeak))
   assert.throws(
     () => assertNoAffiliateLeak({ id: "X", settlementWallet: "hidden" }),
@@ -54,8 +54,15 @@ test("Wave K catalog search and company slug render from Ubuntu data", {
   assert.equal(catalogFlags({ marketplaceEnabled: false, nftMarketplaceEnabled: false }).comingSoon, true)
 })
 
-test("Wave K pages stay Coming Soon and do not open buy routes", () => {
-  for (const path of [marketPage, companyPage, companyDash, nftPage, nftDash]) {
+test("Wave K NFT pages stay Coming Soon; marketplace catalog is named-open", () => {
+  for (const path of [marketPage, companyPage, companyDash]) {
+    assert.equal(existsSync(path), true)
+    const source = readFileSync(path, "utf8")
+    assert.doesNotMatch(source, /Coming Soon/)
+    assert.doesNotMatch(source, /\/api\/nft\/order/)
+    assert.doesNotMatch(source, /fgubaqoftdeefcakejwu/)
+  }
+  for (const path of [nftPage, nftDash]) {
     assert.equal(existsSync(path), true)
     const source = readFileSync(path, "utf8")
     assert.match(source, /Coming Soon/)
@@ -66,7 +73,9 @@ test("Wave K pages stay Coming Soon and do not open buy routes", () => {
   assert.match(readFileSync(marketPage, "utf8"), /\/api\/marketplace\/companies/)
   assert.match(readFileSync(nftPage, "utf8"), /\/api\/nft\/listings/)
   assert.match(readFileSync(nftDash, "utf8"), /\/api\/nft\/my-assets/)
-  assert.match(publicMarketOrder, /status: 403/)
+  assert.match(publicMarketOrder, /persistPendingMarketplaceOrder/)
+  assert.match(publicMarketOrder, /Session required/)
+  assert.match(publicMarketOrder, /marketError\(401/)
   assert.match(publicNftOrder, /status: 403/)
-  assert.equal(pkg.version, "0.1.61")
+  assert.equal(pkg.version, "0.1.62")
 })

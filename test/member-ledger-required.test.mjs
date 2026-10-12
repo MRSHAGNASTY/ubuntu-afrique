@@ -58,7 +58,7 @@ test("member overview rejects investments and Aureus share totals", () => {
   assert.equal(overview.checkoutEnabled, true)
   assert.equal(overview.cardsEnabled, true)
   assert.equal(overview.fractionsEnabled, true)
-  assert.equal(overview.marketplaceEnabled, false)
+  assert.equal(overview.marketplaceEnabled, true)
   assert.equal(overview.nftEnabled, false)
   assert.equal(overview.wallet.available, "2.50")
   assert.equal(overview.fractions.underlying, "0.10")

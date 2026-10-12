@@ -22,7 +22,7 @@ export function publicFractionCheckoutFlags() {
   return {
     cardCheckoutEnabled: true,
     fractionCheckoutEnabled: FRACTION_PUBLIC_CHECKOUT === true,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftMarketplaceEnabled: false,
     checkoutEnabled: FRACTION_PUBLIC_CHECKOUT === true,
     purchaseOpen: "FRACTION",
@@ -75,7 +75,7 @@ export function publicFractionOrderResponse({ order, persisted, idempotent }) {
     checkoutEnabled: true,
     cardCheckoutEnabled: true,
     fractionCheckoutEnabled: true,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftMarketplaceEnabled: false,
   }
 }

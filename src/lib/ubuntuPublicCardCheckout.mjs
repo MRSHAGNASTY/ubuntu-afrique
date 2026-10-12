@@ -19,7 +19,7 @@ export function publicCheckoutFlags() {
   return {
     cardCheckoutEnabled: CARD_PUBLIC_CHECKOUT === true,
     fractionCheckoutEnabled: true,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftMarketplaceEnabled: false,
     checkoutEnabled: CARD_PUBLIC_CHECKOUT === true,
     purchaseOpen: "CARD",
@@ -73,7 +73,7 @@ export function publicCardOrderResponse({ order, persisted, idempotent }) {
     checkoutEnabled: true,
     cardCheckoutEnabled: true,
     fractionCheckoutEnabled: true,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftMarketplaceEnabled: false,
   }
 }

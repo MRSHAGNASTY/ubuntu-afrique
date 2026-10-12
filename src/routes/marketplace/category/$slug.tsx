@@ -43,7 +43,7 @@ function MarketplaceCategoryPage() {
         </div>
       </nav>
       <main className="mx-auto max-w-4xl px-6 py-12">
-        <p className="mb-4 text-sm text-gold/80">Coming Soon. Category browse is view only. Public buy stays 403.</p>
+        <p className="mb-4 text-sm text-gold/80">Named marketplace checkout is open. Open a product to buy. NFT buy stays 403.</p>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <h1 className="font-display text-3xl font-bold">{slug}</h1>
         <p className="mt-2 text-muted-foreground">Filters type or category when those columns exist. Otherwise name/query only.</p>

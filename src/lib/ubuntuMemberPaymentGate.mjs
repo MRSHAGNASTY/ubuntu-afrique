@@ -1,4 +1,4 @@
-/** Named Ubuntu member payment gate for CARD and FRACTION. Marketplace and NFT stay closed. */
+/** Named Ubuntu member payment gate for CARD, FRACTION, and MARKETPLACE. NFT stays closed. */
 
 import { signUbuntuPspWebhook, UA_PSP_PROVIDER } from "./ubuntuPsp.mjs"
 import { formatMoney2, parseMoney } from "./money.mjs"
@@ -13,10 +13,10 @@ export function memberPaymentGateFlags() {
     memberPaymentGateEnabled: MEMBER_PAYMENT_GATE === true,
     cardCheckoutEnabled: true,
     fractionCheckoutEnabled: true,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftMarketplaceEnabled: false,
     checkoutEnabled: MEMBER_PAYMENT_GATE === true,
-    purchaseOpen: "CARD,FRACTION",
+    purchaseOpen: "CARD,FRACTION,MARKETPLACE",
     provider: UA_PSP_PROVIDER,
   }
 }
@@ -30,8 +30,8 @@ export function assertMemberPaymentGateNamed() {
 
 export function assertMemberPaymentKind(kind) {
   const value = String(kind || "").toUpperCase()
-  if (value !== "CARD" && value !== "FRACTION") {
-    throw new Error("Member payment gate is open for CARD and FRACTION only")
+  if (value !== "CARD" && value !== "FRACTION" && value !== "MARKETPLACE") {
+    throw new Error("Member payment gate is open for CARD, FRACTION, and MARKETPLACE only")
   }
   return value
 }

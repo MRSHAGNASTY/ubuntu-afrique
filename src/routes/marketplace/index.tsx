@@ -48,7 +48,7 @@ function MarketplacePage() {
         </div>
       </nav>
       <main className="mx-auto max-w-7xl px-6 py-12">
-        <p className="mb-4 text-sm text-gold/80">Coming Soon. marketplace_enabled stays false. Public buy stays closed.</p>
+        <p className="mb-4 text-sm text-gold/80">Named marketplace checkout is open. NFT buy stays 403.</p>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}

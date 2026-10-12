@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/payments/pending")({
           if (!member) return gateError(404, "Ubuntu member book not found")
           if (member.is_active !== true) return gateError(403, "Ubuntu user is not active")
 
-          const [{ data: cards, error: cardError }, { data: fractions, error: fractionError }] = await Promise.all([
+          const [{ data: cards, error: cardError }, { data: fractions, error: fractionError }, { data: markets, error: marketError }] = await Promise.all([
             ubuntu
               .from("ua_card_orders")
               .select("id, product_id, quantity, total, order_status, created_at")
@@ -46,9 +46,16 @@ export const Route = createFileRoute("/api/payments/pending")({
               .eq("buyer_id", member.id)
               .eq("transaction_status", "PENDING_PAYMENT")
               .order("created_at", { ascending: false }),
+            ubuntu
+              .from("ua_marketplace_orders")
+              .select("id, product_id, retail_price, status, created_at")
+              .eq("user_id", String(member.id))
+              .eq("status", "PENDING_PAYMENT")
+              .order("created_at", { ascending: false }),
           ])
           if (cardError) return gateError(500, cardError.message)
           if (fractionError) return gateError(500, fractionError.message)
+          if (marketError) return gateError(500, marketError.message)
 
           return Response.json({
             ok: true,
@@ -68,6 +75,14 @@ export const Route = createFileRoute("/api/payments/pending")({
                 quantity: Number(row.quantity),
                 total: String(row.total_amount),
                 status: String(row.transaction_status),
+              })),
+              ...(markets || []).map((row) => ({
+                id: String(row.id),
+                kind: "MARKETPLACE",
+                productId: String(row.product_id),
+                quantity: 1,
+                total: String(row.retail_price),
+                status: String(row.status),
               })),
             ],
             ...memberPaymentGateFlags(),

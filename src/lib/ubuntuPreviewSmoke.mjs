@@ -10,7 +10,7 @@ export const PREVIEW_SMOKE = Object.freeze([
   { id: "kyc", path: "/dashboard/kyc", kind: "page" },
   { id: "cardQuote", path: "/dashboard/cards", kind: "page" },
   { id: "fractionQuote", path: "/dashboard/invest", kind: "page" },
-  { id: "marketplaceOrder", path: "/api/marketplace/order", kind: "api", expectStatus: 403 },
+  { id: "marketplaceOrder", path: "/api/marketplace/order", kind: "api", expectStatus: 401 },
   { id: "nftOrder", path: "/api/nft/order", kind: "api", expectStatus: 403 },
 ])
 

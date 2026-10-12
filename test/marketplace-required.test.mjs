@@ -113,12 +113,13 @@ test(
 )
 
 test(
-  "138 public marketplace order path stays closed",
+  "138 public marketplace order path is named-open and requires session",
   { skip: !existsSync(publicOrderRoutePath) },
   () => {
     const source = readFileSync(publicOrderRoutePath, "utf8")
-    assert.match(source, /Public checkout is not open/)
-    assert.match(source, /status: 403/)
+    assert.match(source, /persistPendingMarketplaceOrder/)
+    assert.match(source, /Session required/)
+    assert.match(source, /marketError\(401/)
     assert.doesNotMatch(source, /fgubaqoftdeefcakejwu/)
   }
 )

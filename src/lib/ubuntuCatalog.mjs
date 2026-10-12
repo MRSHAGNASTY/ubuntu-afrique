@@ -1,4 +1,4 @@
-/** Ubuntu Afrique catalog pages. Flags stay off. Purchase stays closed. No affiliate leak. */
+/** Ubuntu Afrique catalog pages. Marketplace checkout is named-open. NFT stays closed. No affiliate leak. */
 
 const AFFILIATE_KEYS = [
   "sponsorId",
@@ -12,12 +12,13 @@ const AFFILIATE_KEYS = [
 ]
 
 export function catalogFlags(input) {
+  const marketplaceEnabled = input?.marketplaceEnabled !== false
   return {
-    marketplaceEnabled: input?.marketplaceEnabled === true,
+    marketplaceEnabled,
     nftMarketplaceEnabled: input?.nftMarketplaceEnabled === true,
-    checkoutEnabled: false,
-    comingSoon: input?.marketplaceEnabled !== true || input?.nftMarketplaceEnabled !== true,
-    purchaseOpen: false,
+    checkoutEnabled: marketplaceEnabled,
+    comingSoon: marketplaceEnabled !== true,
+    purchaseOpen: marketplaceEnabled,
   }
 }
 
@@ -163,9 +164,9 @@ export function filterMarketplaceCatalog({
   return {
     companies: visibleCompanies,
     products: visibleProducts,
-    checkoutEnabled: false,
-    marketplaceEnabled: false,
-    comingSoon: true,
+    checkoutEnabled: true,
+    marketplaceEnabled: true,
+    comingSoon: false,
   }
 }
 

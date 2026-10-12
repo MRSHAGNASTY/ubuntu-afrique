@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/payments/initiate")({
         try {
           kind = assertMemberPaymentKind(body.kind)
         } catch (err) {
-          return gateError(403, err instanceof Error ? err.message : "CARD and FRACTION only")
+          return gateError(403, err instanceof Error ? err.message : "CARD, FRACTION, and MARKETPLACE only")
         }
         const orderId = String(body.orderId || "").trim()
         if (!orderId) return gateError(400, "orderId is required")
@@ -63,10 +63,10 @@ export const Route = createFileRoute("/api/payments/initiate")({
           if (!member) return gateError(404, "Ubuntu member book not found")
           if (member.is_active !== true) return gateError(403, "Ubuntu user is not active")
 
-          const table = kind === "CARD" ? "ua_card_orders" : "ua_fraction_transactions"
-          const ownerField = kind === "CARD" ? "user_id" : "buyer_id"
-          const statusField = kind === "CARD" ? "order_status" : "transaction_status"
-          const totalField = kind === "CARD" ? "total" : "total_amount"
+          const table = kind === "CARD" ? "ua_card_orders" : kind === "FRACTION" ? "ua_fraction_transactions" : "ua_marketplace_orders"
+          const ownerField = kind === "FRACTION" ? "buyer_id" : "user_id"
+          const statusField = kind === "CARD" ? "order_status" : kind === "FRACTION" ? "transaction_status" : "status"
+          const totalField = kind === "CARD" ? "total" : kind === "FRACTION" ? "total_amount" : "retail_price"
           const { data: existing, error } = await ubuntu
             .from(table)
             .select(`id, ${ownerField}, ${statusField}, ${totalField}`)
@@ -74,7 +74,7 @@ export const Route = createFileRoute("/api/payments/initiate")({
             .maybeSingle()
           if (error) return gateError(500, error.message)
           if (!existing) return gateError(404, "Pending order not found")
-          if (Number(existing[ownerField]) !== Number(member.id)) return gateError(403, "Order is not in this Ubuntu member book")
+          if (String(existing[ownerField]) !== String(member.id)) return gateError(403, "Order is not in this Ubuntu member book")
           if (String(existing[statusField] || "") !== "PENDING_PAYMENT") {
             return gateError(409, "Order is not pending payment")
           }

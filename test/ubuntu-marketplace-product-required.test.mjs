@@ -27,8 +27,8 @@ test("Wave Q catalog filter uses extra fields only when present", () => {
   })
   assert.equal(plain.products.length, 2)
   assert.equal(plain.products[0].retailPrice, "40.00")
-  assert.equal(plain.marketplaceEnabled, false)
-  assert.equal(plain.comingSoon, true)
+  assert.equal(plain.marketplaceEnabled, true)
+  assert.equal(plain.comingSoon, false)
 
   const typed = filterMarketplaceCatalog({
     companies: [{ id: "CO1", name: "Co", isActive: true }],
@@ -49,23 +49,25 @@ test("Wave Q catalog filter uses extra fields only when present", () => {
   assert.equal(one.products[0].slug, "A")
 })
 
-test("Wave Q pages browse only and keep public buy closed", () => {
-  for (const source of [productsPage, productPage, categoryPage, dashboard, admin]) {
-    assert.match(source, /Coming Soon|Buy stays 403|Public buy stays 403|buy stays 403/)
+test("Wave Q pages browse and Wave V opens product checkout", () => {
+  for (const source of [productsPage, categoryPage, dashboard, admin]) {
     assert.doesNotMatch(source, /\/api\/marketplace\/order/)
     assert.doesNotMatch(source, /\/api\/admin\/marketplace\/settle/)
-    assert.doesNotMatch(source, /marketplace_enabled\s*=\s*true/)
     assert.doesNotMatch(source, /fgubaqoftdeefcakejwu/)
   }
+  assert.match(productPage, /\/api\/marketplace\/order/)
+  assert.match(productPage, /Buy marketplace product/)
+  assert.doesNotMatch(productPage, /\/api\/admin\/marketplace\/settle/)
+  assert.doesNotMatch(productPage, /fgubaqoftdeefcakejwu/)
   assert.match(productsPage, /\/marketplace\/product\/\$slug/)
-  assert.match(productPage, /View only/)
   assert.match(dashboard, /inventory/)
   assert.doesNotMatch(dashboard, /sponsorId|affiliateCode|settlementWallet/)
   assert.match(admin, /\/api\/admin\/marketplace\/companies/)
   assert.match(admin, /\/api\/admin\/marketplace\/products/)
   assert.match(admin, /\/api\/admin\/marketplace\/media/)
-  assert.match(publicOrder, /status: 403/)
+  assert.match(publicOrder, /persistPendingMarketplaceOrder/)
+  assert.match(publicOrder, /Session required/)
   assert.match(catalog, /featured/)
   assert.equal(existsSync(new URL("../src/routes/marketplace/products.tsx", import.meta.url)), true)
-  assert.equal(pkg.version, "0.1.61")
+  assert.equal(pkg.version, "0.1.62")
 })

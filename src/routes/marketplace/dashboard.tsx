@@ -45,7 +45,7 @@ function MarketplaceDashboardPage() {
         </div>
       </nav>
       <main className="mx-auto max-w-4xl px-6 py-12">
-        <p className="mb-4 text-sm text-gold/80">Coming Soon. Profile, products, and inventory only. No affiliate or network. Checkout closed.</p>
+        <p className="mb-4 text-sm text-gold/80">Company desk: profile, products, and inventory only. No affiliate or network. Named checkout is on the product page.</p>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <h1 className="font-display text-3xl font-bold">Ubuntu company desk</h1>
         <ul className="mt-6 space-y-4">

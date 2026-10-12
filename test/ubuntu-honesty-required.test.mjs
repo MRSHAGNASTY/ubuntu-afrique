@@ -33,6 +33,7 @@ const NS_TESTS = [
   "ubuntu-nft-product-required.test.mjs",
   "ubuntu-civilian-onboarding-required.test.mjs",
   "ubuntu-honesty-required.test.mjs",
+  "ubuntu-marketplace-checkout-required.test.mjs",
 ]
 
 test("Wave T memberLedger and pay-gate flags match named CARD/FRACTION opens", () => {
@@ -42,14 +43,14 @@ test("Wave T memberLedger and pay-gate flags match named CARD/FRACTION opens", (
   assert.equal(overview.checkoutEnabled, true)
   assert.equal(overview.cardsEnabled, true)
   assert.equal(overview.fractionsEnabled, true)
-  assert.equal(overview.marketplaceEnabled, false)
+  assert.equal(overview.marketplaceEnabled, true)
   assert.equal(overview.nftEnabled, false)
   assert.equal(payFlags.cardCheckoutEnabled, true)
   assert.equal(payFlags.fractionCheckoutEnabled, true)
-  assert.equal(payFlags.marketplaceEnabled, false)
+  assert.equal(payFlags.marketplaceEnabled, true)
   assert.equal(payFlags.nftMarketplaceEnabled, false)
   assert.equal(cardFlags.cardCheckoutEnabled, true)
-  assert.equal(cardFlags.marketplaceEnabled, false)
+  assert.equal(cardFlags.marketplaceEnabled, true)
   assert.equal(cardFlags.nftMarketplaceEnabled, false)
   assert.match(ledgerApi, /ok: true, \.\.\.overview/)
   assert.doesNotMatch(ledgerApi, /\.\.\.overview, checkoutEnabled: false/)
@@ -64,7 +65,8 @@ test("Wave T CARD/FRACTION pages stay named-open and marketplace/NFT stay 403", 
   assert.match(cards, /Named open: CARD only|Public CARD checkout/)
   assert.match(invest, /Named FRACTION checkout is open/)
   assert.match(pay, /Pay CARD or FRACTION/)
-  assert.match(publicMarket, /status: 403/)
+  assert.match(publicMarket, /persistPendingMarketplaceOrder/)
+  assert.match(publicMarket, /Session required/)
   assert.match(publicNft, /status: 403/)
 })
 
@@ -81,7 +83,7 @@ test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
     "marketplaceOrder",
     "nftOrder",
   ])
-  assert.deepEqual(previewSmokeClosedApis(), ["/api/marketplace/order", "/api/nft/order"])
+  assert.deepEqual(previewSmokeClosedApis(), ["/api/nft/order"])
   assert.equal(PREVIEW_SMOKE.length, 8)
   for (const name of NS_TESTS) {
     assert.equal(existsSync(new URL("./" + name, import.meta.url)), true, name)
@@ -90,5 +92,5 @@ test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
   assert.match(isolation, /fgubaqoftdeefcakejwu/)
   assert.match(isolation, /Ubuntu client refuses Aureus project ref/)
   assert.match(isolation, /will not connect to Aureus production/)
-  assert.equal(pkg.version, "0.1.61")
+  assert.equal(pkg.version, "0.1.62")
 })

@@ -45,7 +45,7 @@ function MarketplaceProductsPage() {
         </div>
       </nav>
       <main className="mx-auto max-w-7xl px-6 py-12">
-        <p className="mb-4 text-sm text-gold/80">Coming Soon. View only. Public buy stays 403. marketplace_enabled stays false.</p>
+        <p className="mb-4 text-sm text-gold/80">Named marketplace checkout is open. Open a product to buy. NFT buy stays 403.</p>
         <h1 className="font-display text-3xl font-bold">Products</h1>
         <div className="mt-6 grid gap-3 md:grid-cols-3">
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name" className="rounded-md border border-border bg-card px-4 py-3" />

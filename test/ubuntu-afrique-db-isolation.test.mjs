@@ -307,7 +307,9 @@ const catalogPages = [
 ]
 for (const page of catalogPages) {
   const source = readFileSync(new URL(page, import.meta.url), "utf8")
-  assert.doesNotMatch(source, /\/api\/marketplace\/order/, `${page} does not POST marketplace order`)
+  if (!page.includes("marketplace/product/")) {
+    assert.doesNotMatch(source, /\/api\/marketplace\/order/, `${page} does not POST marketplace order`)
+  }
   assert.doesNotMatch(source, /\/api\/nft\/order/, `${page} does not POST NFT order`)
   assert.doesNotMatch(source, /fgubaqoftdeefcakejwu/, `${page} never targets Aureus`)
 }
@@ -509,8 +511,9 @@ assert.match(adminSettle, /checkoutEnabled: false/, "admin marketplace settle ke
 assert.doesNotMatch(adminSettle, /fgubaqoftdeefcakejwu/, "admin marketplace settle never targets Aureus")
 
 const publicMarketOrder = readFileSync(new URL("../src/routes/api/marketplace/order.ts", import.meta.url), "utf8")
-assert.match(publicMarketOrder, /Public checkout is not open/, "public marketplace order stays closed")
-assert.match(publicMarketOrder, /status: 403/, "public marketplace order stays 403")
+assert.match(publicMarketOrder, /persistPendingMarketplaceOrder/, "public marketplace order persists pending")
+assert.match(publicMarketOrder, /Session required/, "public marketplace order requires session")
+assert.match(publicMarketOrder, /marketError\(401/, "public marketplace order without session is 401")
 assert.doesNotMatch(publicMarketOrder, /fgubaqoftdeefcakejwu/, "public marketplace order never targets Aureus")
 
 const schema16 = readFileSync(new URL("../supabase/ubuntu-only/0016_ua_nft_core.sql", import.meta.url), "utf8")
@@ -615,6 +618,13 @@ assert.match(schema23, /ua_notifications/, "0023 adds Ubuntu notifications")
 assert.match(schema23, /in_app/, "0023 is in_app only")
 assert.match(schema23, /ENABLE ROW LEVEL SECURITY/, "0023 enables RLS like the rest of the Ubuntu book")
 
+const schema24 = readFileSync(new URL("../supabase/ubuntu-only/0024_ua_marketplace_enabled.sql", import.meta.url), "utf8")
+assert.match(schema24, /NEVER run this on Aureus production/, "0024 refuses Aureus")
+assert.match(schema24, /rbyipalrasawbjpsppgu/, "0024 names Ubuntu only")
+assert.match(schema24, /fgubaqoftdeefcakejwu/, "0024 names Aureus prod ref as refuse")
+assert.match(schema24, /marketplace_enabled/, "0024 flips marketplace_enabled")
+assert.doesNotMatch(schema24, /nft_marketplace_enabled', 'true'/, "0024 does not enable NFT")
+
 const reportApi = readFileSync(new URL("../src/routes/api/admin/reports.ts", import.meta.url), "utf8")
 assert.match(reportApi, /checkoutEnabled: false/, "admin reports keep checkout closed")
 assert.match(reportApi, /UA_COMMERCE_CONFIRM_SECRET/, "admin reports are secret-gated")
@@ -663,13 +673,14 @@ assert.match(previewSmoke, /\/dashboard\/wallet/, "preview smoke includes wallet
 assert.match(previewSmoke, /\/dashboard\/kyc/, "preview smoke includes KYC")
 assert.match(previewSmoke, /\/dashboard\/cards/, "preview smoke includes card quote")
 assert.match(previewSmoke, /\/dashboard\/invest/, "preview smoke includes fraction quote")
-assert.match(previewSmoke, /\/api\/marketplace\/order/, "preview smoke includes marketplace 403")
+assert.match(previewSmoke, /\/api\/marketplace\/order/, "preview smoke includes marketplace 401")
+assert.match(previewSmoke, /expectStatus: 401/, "preview smoke expects marketplace session 401")
 assert.match(previewSmoke, /\/api\/nft\/order/, "preview smoke includes NFT 403")
 assert.doesNotMatch(previewSmoke, /vercel --prod/, "preview smoke does not promote production")
 
 const memberLedger = readFileSync(new URL("../src/lib/memberLedger.mjs", import.meta.url), "utf8")
 assert.match(memberLedger, /checkoutEnabled: true/, "member ledger named CARD/FRACTION are open")
-assert.match(memberLedger, /marketplaceEnabled: false/, "member ledger keeps marketplace closed")
+assert.match(memberLedger, /marketplaceEnabled: true/, "member ledger named marketplace is open")
 assert.match(memberLedger, /nftEnabled: false/, "member ledger keeps NFT closed")
 assert.doesNotMatch(memberLedger, /fgubaqoftdeefcakejwu/, "member ledger never targets Aureus")
 
