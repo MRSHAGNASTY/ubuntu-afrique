@@ -287,6 +287,12 @@ assert.match(pspEngine, /UA_PSP_STAGING/, "PSP engine uses Ubuntu staging provid
 assert.match(pspEngine, /will not use Aureus payment credentials/, "PSP engine refuses Aureus credentials")
 assert.doesNotMatch(pspEngine, /NOWPAYMENTS/, "PSP engine does not import Aureus NowPayments")
 
+const bscEngine = readFileSync(new URL("../src/lib/ubuntuBscVerify.mjs", import.meta.url), "utf8")
+assert.match(bscEngine, /does not mint Aureus shares/, "BSC till refuses Aureus share mint")
+assert.match(bscEngine, /will not use Aureus payment credentials/, "BSC till refuses Aureus credentials")
+assert.doesNotMatch(bscEngine, /NOWPAYMENTS/, "BSC till does not import Aureus NowPayments")
+assert.match(bscEngine, /shopify/i, "BSC till refuses Shopify keys")
+
 const catalogEngine = readFileSync(new URL("../src/lib/ubuntuCatalog.mjs", import.meta.url), "utf8")
 assert.match(catalogEngine, /checkoutEnabled: false/, "catalog pages keep checkout closed")
 assert.match(catalogEngine, /comingSoon: true/, "catalog pages stay Coming Soon")

@@ -91,5 +91,5 @@ test("Wave S register, persist, and first-run stay Ubuntu-only and do not gate p
   assert.doesNotMatch(cards, /kycStatus/)
   assert.doesNotMatch(invest, /kycStatus/)
   assert.equal(existsSync(new URL("../src/lib/ubuntuOnboarding.mjs", import.meta.url)), true)
-  assert.equal(pkg.version, "0.1.65")
+  assert.equal(pkg.version, "0.1.66")
 })

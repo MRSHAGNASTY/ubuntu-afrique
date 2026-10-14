@@ -29,6 +29,7 @@ function PayPage() {
   const [result, setResult] = useState<Record<string, any> | null>(null)
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
+  const [txHash, setTxHash] = useState("")
 
   useEffect(() => {
     if (!sessionToken()) {
@@ -59,7 +60,7 @@ function PayPage() {
           return
         }
         if (!json.ok) {
-          setError(json.error || "Paystack verify failed")
+          setError(json.error || "Payment verify failed")
           return
         }
         setResult(json.order)
@@ -103,6 +104,36 @@ function PayPage() {
     if (!ticket) return
     if (!sessionToken()) {
       navigate({ to: "/auth/login", search: { next: "/dashboard/pay" } })
+      return
+    }
+    if (ticket.next === "bsc-hash") {
+      setBusy(true)
+      setError("")
+      try {
+        const res = await fetch("/api/payments/verify-bsc", {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({
+            kind: ticket.kind,
+            orderId: ticket.orderId,
+            txHash,
+          }),
+        })
+        const json = await res.json()
+        if (res.status === 401) {
+          navigate({ to: "/auth/login", search: { next: "/dashboard/pay" } })
+          return
+        }
+        if (!json.ok) {
+          setError(json.error || "BSC verify failed")
+          return
+        }
+        setResult(json.order)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "BSC verify failed")
+      } finally {
+        setBusy(false)
+      }
       return
     }
     if (ticket.authorizationUrl) {
@@ -152,7 +183,7 @@ function PayPage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Pay CARD, FRACTION, or MARKETPLACE</h1>
         <p className="mt-2 text-muted-foreground">
-          Paystack on this host. Amount comes from the Ubuntu book. Dummy staging only if Paystack keys are absent. NFT stays closed.
+          Send USDT on BSC to the Ubuntu company wallet, then paste the hash. Amount comes from the Ubuntu book. Paystack and dummy staging only if that wallet is not set. NFT stays closed.
         </p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {result && (
@@ -166,12 +197,28 @@ function PayPage() {
             <p className="mt-2 font-display text-2xl font-bold">${ticket.amount} USD</p>
             <p className="mt-2 text-sm text-muted-foreground">Order {ticket.orderId}</p>
             <p className="mt-1 text-sm text-muted-foreground">Provider {ticket.provider}</p>
+            {ticket.companyWallet && (
+              <>
+                <p className="mt-4 text-sm">Send {ticket.amount} USDT on BSC (chain {ticket.chainId || 56})</p>
+                <p className="mt-1 break-all font-mono text-sm text-gold">{ticket.companyWallet}</p>
+                <input
+                  value={txHash}
+                  onChange={(event) => setTxHash(event.target.value)}
+                  placeholder="0x transaction hash"
+                  className="mt-4 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-sm"
+                />
+              </>
+            )}
             <button
-              disabled={busy}
+              disabled={busy || (ticket.next === "bsc-hash" && !txHash.trim())}
               onClick={() => void pay()}
               className="mt-6 rounded-md border border-gold/50 px-6 py-2 font-semibold text-gold hover:bg-gold/10 disabled:opacity-50"
             >
-              {ticket.authorizationUrl ? "Pay with Paystack" : "Pay Ubuntu staging"}
+              {ticket.next === "bsc-hash"
+                ? "Verify USDT on BSC"
+                : ticket.authorizationUrl
+                  ? "Pay with Paystack"
+                  : "Pay Ubuntu staging"}
             </button>
           </section>
         )}

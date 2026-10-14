@@ -121,5 +121,5 @@ test("Wave X routes use Paystack and keep NFT 403", () => {
   assert.doesNotMatch(envExample, /NOWPAYMENTS/)
   assert.doesNotMatch(envExample, /SHOPIFY/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.65")
+  assert.equal(pkg.version, "0.1.66")
 })

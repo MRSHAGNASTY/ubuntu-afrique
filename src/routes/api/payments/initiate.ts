@@ -4,6 +4,7 @@ import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
 import { assertUbuntuPspSecret } from "../../../lib/ubuntuPsp.mjs"
 import { assertUbuntuPaystackSecret, paystackConfigured, UA_PAYSTACK_PROVIDER } from "../../../lib/ubuntuPaystack.mjs"
 import { initializeUbuntuPaystackPayment } from "../../../lib/persistPaystack.server"
+import { BSC_CHAIN_ID, UA_BSC_PROVIDER, bscConfigured, normalizeWallet } from "../../../lib/ubuntuBscVerify.mjs"
 import { bearerToken, resolveSessionMember } from "../../../lib/resolveUbuntuSessionMember.server"
 import {
   assertMemberPaymentGateNamed,
@@ -53,10 +54,13 @@ export const Route = createFileRoute("/api/payments/initiate")({
         }
         if (!ubuntu) return gateError(503, "Ubuntu Afrique database is not configured")
 
+        const useBsc = bscConfigured()
         let secret = ""
         let paystackSecret = ""
         try {
-          if (paystackConfigured()) {
+          if (useBsc) {
+            normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || "")
+          } else if (paystackConfigured()) {
             paystackSecret = assertUbuntuPaystackSecret(process.env.UA_PAYSTACK_SECRET_KEY || "")
           } else {
             secret = assertUbuntuPspSecret(process.env.UA_PSP_WEBHOOK_SECRET || "")
@@ -88,6 +92,20 @@ export const Route = createFileRoute("/api/payments/initiate")({
 
           const amount = bookPaymentAmount(existing[totalField])
           const paymentId = randomUUID()
+          if (useBsc) {
+            return Response.json(memberPaymentInitiateResponse({
+              paymentId,
+              orderId,
+              kind,
+              amount,
+              signature: "",
+              provider: UA_BSC_PROVIDER,
+              companyWallet: normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || ""),
+              network: "BSC",
+              token: "USDT",
+              chainId: BSC_CHAIN_ID,
+            }))
+          }
           if (paystackSecret) {
             const origin = new URL(request.url).origin
             const started = await initializeUbuntuPaystackPayment({

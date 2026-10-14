@@ -6,6 +6,7 @@ import { verifyUbuntuPaystackReference } from "../../../lib/persistPaystack.serv
 import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
 import { assertUbuntuPspSecret } from "../../../lib/ubuntuPsp.mjs"
 import { assertUbuntuPaystackSecret, paystackConfigured, UA_PAYSTACK_PROVIDER } from "../../../lib/ubuntuPaystack.mjs"
+import { bscConfigured } from "../../../lib/ubuntuBscVerify.mjs"
 import { bearerToken, resolveSessionMember } from "../../../lib/resolveUbuntuSessionMember.server"
 import {
   assertMemberPaymentGateNamed,
@@ -43,6 +44,9 @@ export const Route = createFileRoute("/api/payments/complete")({
         const orderId = String(body.orderId || "").trim()
         const paymentId = String(body.paymentId || "").trim()
         const signature = String(body.signature || "").trim()
+        if (bscConfigured()) {
+          return gateError(400, "Submit the BSC USDT hash to /api/payments/verify-bsc")
+        }
         const usePaystack = paystackConfigured()
         if (!orderId || !paymentId || (!usePaystack && !signature)) {
           return gateError(400, usePaystack ? "orderId and paymentId are required" : "orderId, paymentId, and signature are required")

@@ -72,5 +72,5 @@ test("Wave I schema and APIs stay on Ubuntu and keep checkout closed", () => {
   assert.match(auth, /via: "secret"/)
   assert.match(auth, /via: "role"/)
   assert.match(auth, /resolveUbuntuStaffSession/)
-  assert.equal(pkg.version, "0.1.65")
+  assert.equal(pkg.version, "0.1.66")
 })
