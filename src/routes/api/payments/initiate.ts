@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { randomUUID } from "node:crypto"
 import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
-import { assertUbuntuPspSecret } from "../../../lib/ubuntuPsp.mjs"
-import { assertUbuntuPaystackSecret, paystackConfigured, UA_PAYSTACK_PROVIDER } from "../../../lib/ubuntuPaystack.mjs"
-import { initializeUbuntuPaystackPayment } from "../../../lib/persistPaystack.server"
 import { BSC_CHAIN_ID, UA_BSC_PROVIDER, bscConfigured, normalizeWallet } from "../../../lib/ubuntuBscVerify.mjs"
 import { bearerToken, resolveSessionMember } from "../../../lib/resolveUbuntuSessionMember.server"
+import { BSC_WALLET_REQUIRED, PAYSTACK_TILL_REFUSED, DUMMY_TILL_REFUSED } from "../../../lib/ubuntuProcessParity.mjs"
 import {
   assertMemberPaymentGateNamed,
   assertMemberPaymentKind,
@@ -13,7 +11,6 @@ import {
   memberPaymentGateFlags,
   memberPaymentInitiateResponse,
   rejectMemberPaymentClientOverrides,
-  signMemberPaymentTicket,
 } from "../../../lib/ubuntuMemberPaymentGate.mjs"
 
 function gateError(status: number, error: string) {
@@ -54,19 +51,13 @@ export const Route = createFileRoute("/api/payments/initiate")({
         }
         if (!ubuntu) return gateError(503, "Ubuntu Afrique database is not configured")
 
-        const useBsc = bscConfigured()
-        let secret = ""
-        let paystackSecret = ""
+        if (!bscConfigured()) {
+          return gateError(503, BSC_WALLET_REQUIRED)
+        }
         try {
-          if (useBsc) {
-            normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || "")
-          } else if (paystackConfigured()) {
-            paystackSecret = assertUbuntuPaystackSecret(process.env.UA_PAYSTACK_SECRET_KEY || "")
-          } else {
-            secret = assertUbuntuPspSecret(process.env.UA_PSP_WEBHOOK_SECRET || "")
-          }
+          normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || "")
         } catch (err) {
-          return gateError(503, err instanceof Error ? err.message : "Ubuntu PSP secret is required")
+          return gateError(503, err instanceof Error ? err.message : BSC_WALLET_REQUIRED)
         }
 
         try {
@@ -92,45 +83,26 @@ export const Route = createFileRoute("/api/payments/initiate")({
 
           const amount = bookPaymentAmount(existing[totalField])
           const paymentId = randomUUID()
-          if (useBsc) {
-            return Response.json(memberPaymentInitiateResponse({
-              paymentId,
-              orderId,
-              kind,
-              amount,
-              signature: "",
-              provider: UA_BSC_PROVIDER,
-              companyWallet: normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || ""),
-              network: "BSC",
-              token: "USDT",
-              chainId: BSC_CHAIN_ID,
-            }))
-          }
-          if (paystackSecret) {
-            const origin = new URL(request.url).origin
-            const started = await initializeUbuntuPaystackPayment({
-              secret: paystackSecret,
-              email: String(member.email || ""),
-              amount,
-              kind,
-              orderId,
-              paymentId,
-              callbackUrl: `${origin}/dashboard/pay?kind=${encodeURIComponent(kind)}&orderId=${encodeURIComponent(orderId)}`,
-            })
-            return Response.json(memberPaymentInitiateResponse({
-              paymentId: started.reference || paymentId,
-              orderId,
-              kind,
-              amount,
-              signature: "",
-              provider: UA_PAYSTACK_PROVIDER,
-              authorizationUrl: started.authorizationUrl,
-            }))
-          }
-          const signature = signMemberPaymentTicket(secret, { paymentId, orderId, kind, amount })
-          return Response.json(memberPaymentInitiateResponse({ paymentId, orderId, kind, amount, signature }))
+          return Response.json(memberPaymentInitiateResponse({
+            paymentId,
+            orderId,
+            kind,
+            amount,
+            signature: "",
+            provider: UA_BSC_PROVIDER,
+            companyWallet: normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || ""),
+            network: "BSC",
+            token: "USDT",
+            chainId: BSC_CHAIN_ID,
+          }))
         } catch (err) {
           const message = err instanceof Error ? err.message : "Payment initiate failed"
+          if (message.includes("Paystack") || message.includes("paystack")) {
+            return gateError(403, PAYSTACK_TILL_REFUSED)
+          }
+          if (message.includes("staging") || message.includes("UA_PSP")) {
+            return gateError(403, DUMMY_TILL_REFUSED)
+          }
           const unauthorized = message.includes("Invalid session") || message.includes("expired")
           return gateError(unauthorized ? 401 : 400, message)
         }

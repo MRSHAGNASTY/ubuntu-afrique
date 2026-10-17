@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { persistPaymentEvent } from "./persistPayment.server"
-import { persistMemberPaymentSettle } from "./persistMemberPaymentSettle.server"
 import {
   PAYSTACK_CHARGE_REQUIRED,
   assertPaystackInitializeResponse,
@@ -8,7 +7,6 @@ import {
   assertUbuntuPaystackSecret,
   buildPaystackInitializeBody,
   parsePaystackChargeSuccess,
-  ubuntuOrderTable,
   verifyPaystackSignature,
 } from "./ubuntuPaystack.mjs"
 
@@ -79,22 +77,13 @@ export async function persistUbuntuPaystackWebhook(
     throw err
   }
   const persisted = await persistPaymentEvent(ubuntu, event)
-  const book = ubuntuOrderTable(event.kind)
-  const { data: existing, error } = await ubuntu.from(book.table).select("*").eq("id", event.orderId).maybeSingle()
-  if (error) throw new Error(error.message)
-  if (!existing) throw new Error("Pending order not found")
-  const settled = await persistMemberPaymentSettle(ubuntu, {
-    kind: event.kind as "CARD" | "FRACTION" | "MARKETPLACE",
-    orderId: event.orderId,
-    paymentId: event.paymentId,
-    existing,
-  })
   return {
     ...persisted,
     event,
-    settled: true,
-    settleIdempotent: settled.idempotent === true,
+    settled: false,
+    settleIdempotent: false,
     ignored: false,
+    next: "admin-approve",
     checkoutEnabled: false as const,
   }
 }

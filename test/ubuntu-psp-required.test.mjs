@@ -137,7 +137,7 @@ test("Wave J webhook stays Ubuntu-only and checkout stays closed", {
   assert.match(publicOrder, /checkoutEnabled: true/)
   assert.match(envExample, /UA_PSP_WEBHOOK_SECRET/)
   assert.doesNotMatch(envExample, /NOWPAYMENTS/)
-  assert.equal(pkg.version, "0.1.66")
+  assert.equal(pkg.version, "0.1.67")
 })
 
 test("Wave U dummy PSP signs MARKETPLACE and refuses NFT", {

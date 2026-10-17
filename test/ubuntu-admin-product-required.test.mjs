@@ -24,6 +24,7 @@ test("Wave O admin shell is Ubuntu desks, not Aureus administration", () => {
   assert.match(admin, /\/admin\/kyc/)
   assert.match(admin, /\/admin\/ranks/)
   assert.match(admin, /\/admin\/finance/)
+  assert.match(admin, /\/admin\/payments/)
   assert.doesNotMatch(admin, /marketplace_enabled/)
   assert.doesNotMatch(admin, /nft_marketplace_enabled/)
   assert.doesNotMatch(admin, /fgubaqoftdeefcakejwu/)
@@ -76,5 +77,5 @@ test("Wave O ranks desk does not auto-promote user 10", () => {
 })
 
 test("Wave O version is 0.1.64", () => {
-  assert.equal(pkg.version, "0.1.66")
+  assert.equal(pkg.version, "0.1.67")
 })

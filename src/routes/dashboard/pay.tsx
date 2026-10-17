@@ -45,25 +45,7 @@ function PayPage() {
     setResult(null)
     try {
       if (search.kind && search.orderId && search.reference) {
-        const res = await fetch("/api/payments/complete", {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({
-            kind: search.kind,
-            orderId: search.orderId,
-            paymentId: search.reference,
-          }),
-        })
-        const json = await res.json()
-        if (res.status === 401) {
-          navigate({ to: "/auth/login", search: { next: "/dashboard/pay" } })
-          return
-        }
-        if (!json.ok) {
-          setError(json.error || "Payment verify failed")
-          return
-        }
-        setResult(json.order)
+        setError("Submit the BSC USDT hash. Johan Verify & Approve settles the Ubuntu book.")
         return
       }
       if (search.kind && search.orderId) {
@@ -128,7 +110,12 @@ function PayPage() {
           setError(json.error || "BSC verify failed")
           return
         }
-        setResult(json.order)
+        setResult({
+          ...(json.order || {}),
+          attested: json.attested === true,
+          settled: json.settled === true,
+          message: json.message || "",
+        })
       } catch (err) {
         setError(err instanceof Error ? err.message : "BSC verify failed")
       } finally {
@@ -136,38 +123,7 @@ function PayPage() {
       }
       return
     }
-    if (ticket.authorizationUrl) {
-      window.location.assign(String(ticket.authorizationUrl))
-      return
-    }
-    setBusy(true)
-    setError("")
-    try {
-      const res = await fetch("/api/payments/complete", {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          kind: ticket.kind,
-          orderId: ticket.orderId,
-          paymentId: ticket.paymentId,
-          signature: ticket.signature,
-        }),
-      })
-      const json = await res.json()
-      if (res.status === 401) {
-        navigate({ to: "/auth/login", search: { next: "/dashboard/pay" } })
-        return
-      }
-      if (!json.ok) {
-        setError(json.error || "Payment complete failed")
-        return
-      }
-      setResult(json.order)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment complete failed")
-    } finally {
-      setBusy(false)
-    }
+    setError("Submit the BSC USDT hash. Johan Verify & Approve settles the Ubuntu book.")
   }
 
   return (
@@ -183,12 +139,14 @@ function PayPage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Pay CARD, FRACTION, or MARKETPLACE</h1>
         <p className="mt-2 text-muted-foreground">
-          Send USDT on BSC to the Ubuntu company wallet, then paste the hash. Amount comes from the Ubuntu book. Paystack and dummy staging only if that wallet is not set. NFT stays closed.
+          Send USDT on BSC to the Ubuntu company wallet, then paste the hash. Johan Verify & Approve settles the Ubuntu book. This does not mint Aureus shares. NFT stays closed.
         </p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {result && (
           <p className="mt-4 text-sm text-gold">
-            Paid {result.kind} {result.id} @ ${result.total}
+            {result.settled
+              ? `Paid ${result.kind} ${result.id} @ $${result.total}`
+              : `Hash attested for ${result.kind} ${result.id}. Waiting for Johan Verify & Approve.`}
           </p>
         )}
         {ticket && !result && (
@@ -214,11 +172,7 @@ function PayPage() {
               onClick={() => void pay()}
               className="mt-6 rounded-md border border-gold/50 px-6 py-2 font-semibold text-gold hover:bg-gold/10 disabled:opacity-50"
             >
-              {ticket.next === "bsc-hash"
-                ? "Verify USDT on BSC"
-                : ticket.authorizationUrl
-                  ? "Pay with Paystack"
-                  : "Pay Ubuntu staging"}
+              Verify USDT on BSC
             </button>
           </section>
         )}
@@ -240,7 +194,7 @@ function PayPage() {
               >
                 <p className="text-xs uppercase tracking-widest text-gold">{order.kind}</p>
                 <p className="mt-2 font-semibold">{order.productId} qty {order.quantity}</p>
-                <p className="text-sm text-muted-foreground">${order.total} {order.status}</p>
+                <p className="text-sm text-muted-foreground">${order.total} {order.status}{order.attested ? " · hash submitted, waiting for Johan" : ""}</p>
               </button>
             ))}
           </section>

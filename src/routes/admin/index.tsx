@@ -8,6 +8,7 @@ export const Route = createFileRoute("/admin/")({
 
 const DESKS = [
   { to: "/admin/finance", role: "FINANCE", title: "Finance", detail: "Ledger and commerce totals" },
+  { to: "/admin/payments", role: "FINANCE", title: "Verify & Approve", detail: "Johan BSC hash then ua_* settle. No Aureus mint" },
   { to: "/admin/cards", role: "CARD", title: "Cards", detail: "Orders, fulfilment, refund" },
   { to: "/admin/fractions", role: "SHARE", title: "Fractions", detail: "Orders, liability remit, refund" },
   { to: "/admin/kyc", role: "KYC", title: "KYC", detail: "Ubuntu review only" },

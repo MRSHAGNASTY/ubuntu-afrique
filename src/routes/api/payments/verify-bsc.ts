@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { persistMemberPaymentSettle } from "../../../lib/persistMemberPaymentSettle.server"
+import { persistBscAttestOnPending } from "../../../lib/persistBscAttest.server"
 import { persistPaymentEvent } from "../../../lib/persistPayment.server"
 import { verifyUbuntuBscHash } from "../../../lib/persistBsc.server"
 import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
@@ -11,10 +11,13 @@ import {
   normalizeTxHash,
 } from "../../../lib/ubuntuBscVerify.mjs"
 import {
+  assertNoAureusShareMint,
+  memberPaymentAttestResponse,
+} from "../../../lib/ubuntuProcessParity.mjs"
+import {
   assertMemberPaymentGateNamed,
   assertMemberPaymentKind,
   bookPaymentAmount,
-  memberPaymentCompleteResponse,
   memberPaymentGateFlags,
   rejectMemberPaymentClientOverrides,
 } from "../../../lib/ubuntuMemberPaymentGate.mjs"
@@ -31,9 +34,10 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
         try {
           assertMemberPaymentGateNamed()
           rejectMemberPaymentClientOverrides(body)
+          assertNoAureusShareMint(body)
         } catch (err) {
           const message = err instanceof Error ? err.message : "Member payment gate refused"
-          const forbidden = message.includes("only") || message.includes("not open")
+          const forbidden = message.includes("only") || message.includes("not open") || message.includes("does not mint")
           return gateError(forbidden ? 403 : 400, message)
         }
 
@@ -75,6 +79,7 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
 
           const table = kind === "CARD" ? "ua_card_orders" : kind === "FRACTION" ? "ua_fraction_transactions" : "ua_marketplace_orders"
           const ownerField = kind === "FRACTION" ? "buyer_id" : "user_id"
+          const statusField = kind === "CARD" ? "order_status" : kind === "FRACTION" ? "transaction_status" : "status"
           const { data: existing, error } = await ubuntu.from(table).select("*").eq("id", orderId).maybeSingle()
           if (error) return gateError(500, error.message)
           if (!existing) return gateError(404, "Pending order not found")
@@ -92,47 +97,28 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
             kind,
           })
           await persistPaymentEvent(ubuntu, verified)
-          const settled = await persistMemberPaymentSettle(ubuntu, {
+          const attested = await persistBscAttestOnPending(ubuntu, {
             kind,
             orderId,
             paymentId: verified.paymentId,
             existing,
           })
           return Response.json(
-            memberPaymentCompleteResponse({
-              order: settled.order,
+            memberPaymentAttestResponse({
+              order: {
+                id: orderId,
+                kind,
+                status: attested.settled ? "PAID" : String(existing[statusField] || "PENDING_PAYMENT"),
+                total: amount,
+              },
               paymentId: verified.paymentId,
-              settled: true,
-              idempotent: settled.idempotent === true,
+              attested: true,
+              idempotent: attested.idempotent === true,
               provider: UA_BSC_PROVIDER,
             })
           )
         } catch (err) {
           const message = err instanceof Error ? err.message : "BSC verify failed"
-          const raced = /duplicate|unique constraint|ua_qv_txn_source/i.test(message)
-          if (raced) {
-            const racedTable = kind === "CARD" ? "ua_card_orders" : kind === "FRACTION" ? "ua_fraction_transactions" : "ua_marketplace_orders"
-            const { data: again } = await ubuntu.from(racedTable).select("*").eq("id", orderId).maybeSingle()
-            const statusField = kind === "CARD" ? "order_status" : kind === "FRACTION" ? "transaction_status" : "status"
-            if (again && (String(again[statusField] || "") === "PAID" || String(again[statusField] || "") === "SETTLED")) {
-              return Response.json(
-                memberPaymentCompleteResponse({
-                  order: {
-                    id: orderId,
-                    kind,
-                    status: "PAID",
-                    total: String(
-                      kind === "CARD" ? again.total : kind === "FRACTION" ? again.total_amount || "" : again.retail_price || ""
-                    ),
-                  },
-                  paymentId: txHash,
-                  settled: true,
-                  idempotent: true,
-                  provider: UA_BSC_PROVIDER,
-                })
-              )
-            }
-          }
           const unauthorized = message.includes("Invalid session") || message.includes("expired")
           const notFound = message.includes(BSC_TX_NOT_FOUND) || message.includes("not found")
           const conflict = message.includes("already") || message.includes("not pending") || message.includes("different Ubuntu")

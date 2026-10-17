@@ -1,7 +1,6 @@
 /** Named Ubuntu member payment gate for CARD, FRACTION, and MARKETPLACE. NFT stays closed. */
 
-import { signUbuntuPspWebhook, UA_PSP_PROVIDER } from "./ubuntuPsp.mjs"
-import { UA_PAYSTACK_PROVIDER } from "./ubuntuPaystack.mjs"
+import { signUbuntuPspWebhook } from "./ubuntuPsp.mjs"
 import { UA_BSC_PROVIDER } from "./ubuntuBscVerify.mjs"
 import { formatMoney2, parseMoney } from "./money.mjs"
 
@@ -19,9 +18,9 @@ export function memberPaymentGateFlags() {
     nftMarketplaceEnabled: false,
     checkoutEnabled: MEMBER_PAYMENT_GATE === true,
     purchaseOpen: "CARD,FRACTION,MARKETPLACE",
-    provider: UA_PSP_PROVIDER,
+    provider: UA_BSC_PROVIDER,
     namedProvider: UA_BSC_PROVIDER,
-    fallbackProvider: UA_PAYSTACK_PROVIDER,
+    fallbackProvider: "",
   }
 }
 

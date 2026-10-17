@@ -36,13 +36,13 @@ export const Route = createFileRoute("/api/payments/pending")({
           const [{ data: cards, error: cardError }, { data: fractions, error: fractionError }, { data: markets, error: marketError }] = await Promise.all([
             ubuntu
               .from("ua_card_orders")
-              .select("id, product_id, quantity, total, order_status, created_at")
+              .select("id, product_id, quantity, total, order_status, payment_id, created_at")
               .eq("user_id", member.id)
               .eq("order_status", "PENDING_PAYMENT")
               .order("created_at", { ascending: false }),
             ubuntu
               .from("ua_fraction_transactions")
-              .select("id, quantity, total_amount, transaction_status, created_at")
+              .select("id, quantity, total_amount, transaction_status, payment_id, created_at")
               .eq("buyer_id", member.id)
               .eq("transaction_status", "PENDING_PAYMENT")
               .order("created_at", { ascending: false }),
@@ -67,6 +67,8 @@ export const Route = createFileRoute("/api/payments/pending")({
                 quantity: Number(row.quantity),
                 total: String(row.total),
                 status: String(row.order_status),
+                paymentId: row.payment_id ? String(row.payment_id) : "",
+                attested: Boolean(row.payment_id),
               })),
               ...(fractions || []).map((row) => ({
                 id: String(row.id),
@@ -75,6 +77,8 @@ export const Route = createFileRoute("/api/payments/pending")({
                 quantity: Number(row.quantity),
                 total: String(row.total_amount),
                 status: String(row.transaction_status),
+                paymentId: row.payment_id ? String(row.payment_id) : "",
+                attested: Boolean(row.payment_id),
               })),
               ...(markets || []).map((row) => ({
                 id: String(row.id),
