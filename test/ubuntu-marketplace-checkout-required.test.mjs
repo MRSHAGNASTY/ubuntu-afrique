@@ -80,5 +80,5 @@ test("Wave V product page posts pending then pay; NFT stays 403", () => {
   assert.match(psp, /assertPaymentKind/)
   assert.match(pay, /Pay CARD, FRACTION, or MARKETPLACE/)
   assert.doesNotMatch(pay, /kind must be CARD or FRACTION/)
-  assert.equal(pkg.version, "0.1.68")
+  assert.equal(pkg.version, "0.1.69")
 })

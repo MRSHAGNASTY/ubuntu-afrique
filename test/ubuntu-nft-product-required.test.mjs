@@ -46,5 +46,5 @@ test("Wave R pages preview only and do not buy or transfer", () => {
   assert.match(persist, /export async function loadNftAssets/)
   assert.match(publicOrder, /status: 403/)
   assert.equal(existsSync(new URL("../src/routes/admin/nft.tsx", import.meta.url)), true)
-  assert.equal(pkg.version, "0.1.68")
+  assert.equal(pkg.version, "0.1.69")
 })

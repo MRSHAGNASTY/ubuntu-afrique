@@ -139,7 +139,7 @@ function PayPage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Pay CARD, FRACTION, or MARKETPLACE</h1>
         <p className="mt-2 text-muted-foreground">
-          Send USDT on BSC to the Ubuntu company wallet, then paste the hash. Johan Verify & Approve settles the Ubuntu book. This does not mint Aureus shares. NFT stays closed.
+          Send USDT on BSC to the Ubuntu company wallet, then paste the hash. That receive address is Ubuntu Afrique only — not live Aureus COMPANY_WALLET_BSC. Johan Verify & Approve settles the Ubuntu book. This does not mint Aureus shares. NFT stays closed.
         </p>
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {result && (

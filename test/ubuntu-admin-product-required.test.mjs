@@ -77,5 +77,5 @@ test("Wave O ranks desk does not auto-promote user 10", () => {
 })
 
 test("Wave O version is 0.1.64", () => {
-  assert.equal(pkg.version, "0.1.68")
+  assert.equal(pkg.version, "0.1.69")
 })

@@ -10,6 +10,7 @@ import {
   UA_BSC_PROVIDER,
   bscConfigured,
   normalizeTxHash,
+  normalizeWallet,
 } from "../../../lib/ubuntuBscVerify.mjs"
 import {
   assertNoAureusShareMint,
@@ -44,6 +45,11 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
 
         if (!bscConfigured()) {
           return gateError(503, "UA_BSC_COMPANY_WALLET is required")
+        }
+        try {
+          normalizeWallet(process.env.UA_BSC_COMPANY_WALLET || "")
+        } catch (err) {
+          return gateError(503, err instanceof Error ? err.message : "UA_BSC_COMPANY_WALLET is required")
         }
 
         let kind
@@ -125,7 +131,10 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
           const unauthorized = message.includes("Invalid session") || message.includes("expired")
           const notFound = message.includes(BSC_TX_NOT_FOUND) || message.includes("not found")
           const conflict = message.includes("already") || message.includes("not pending") || message.includes("different Ubuntu")
-          const unavailable = message.includes("prod SELECT is required")
+          const unavailable =
+            message.includes("prod SELECT is required") ||
+            message.includes("must not be live COMPANY_WALLET_BSC") ||
+            message.includes("UA_BSC_COMPANY_WALLET is required")
           return gateError(unauthorized ? 401 : notFound ? 404 : conflict ? 409 : unavailable ? 503 : 400, message)
         }
       },

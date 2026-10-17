@@ -64,5 +64,5 @@ test("Wave L CARD page and marketplace/NFT public buy routes stay closed", () =>
   assert.match(publicFraction, /persistPendingFractionOrder/)
   assert.match(publicMarket, /persistPendingMarketplaceOrder/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.68")
+  assert.equal(pkg.version, "0.1.69")
 })

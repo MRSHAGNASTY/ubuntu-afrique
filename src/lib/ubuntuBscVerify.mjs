@@ -12,6 +12,9 @@ export const DEFAULT_BSC_RPC = "https://bsc-dataseed.binance.org"
 export const DEFAULT_MIN_CONFIRMATIONS = 12
 export const AUREUS_PSP_REFUSED = "Refused. Ubuntu PSP will not use Aureus payment credentials."
 export const BSC_WALLET_REQUIRED = "UA_BSC_COMPANY_WALLET is required"
+export const AUREUS_LIVE_COMPANY_WALLET_BSC = "0x82030544c8184fee4627d52aea67fc575d9bbded"
+export const BSC_WALLET_SHARED_REFUSED =
+  "Refused. Ubuntu BSC receive must not be live COMPANY_WALLET_BSC."
 export const BSC_HASH_INVALID = "BSC transaction hash is invalid"
 export const BSC_WALLET_INVALID = "Ubuntu BSC company wallet is invalid"
 export const BSC_TX_NOT_FOUND = "BSC transaction not found"
@@ -69,6 +72,7 @@ export function normalizeWallet(address) {
   if (!value) throw new Error(BSC_WALLET_REQUIRED)
   assertUbuntuBscEnvValue(value)
   if (!/^0x[0-9a-f]{40}$/.test(value)) throw new Error(BSC_WALLET_INVALID)
+  if (value === AUREUS_LIVE_COMPANY_WALLET_BSC) throw new Error(BSC_WALLET_SHARED_REFUSED)
   return value
 }
 

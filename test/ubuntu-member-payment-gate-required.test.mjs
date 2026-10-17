@@ -110,5 +110,5 @@ test("member payment routes stay Ubuntu-only and do not open marketplace or NFT"
   assert.match(publicMarket, /persistPendingMarketplaceOrder/)
   assert.match(publicMarket, /Session required/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.68")
+  assert.equal(pkg.version, "0.1.69")
 })
