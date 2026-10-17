@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { persistBscAttestOnPending } from "../../../lib/persistBscAttest.server"
+import { assertBscHashReusable } from "../../../lib/persistHashReuse.server"
 import { persistPaymentEvent } from "../../../lib/persistPayment.server"
 import { verifyUbuntuBscHash } from "../../../lib/persistBsc.server"
 import { getUbuntuServerClient } from "../../../lib/ubuntuServer.server"
@@ -87,6 +88,8 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
             return gateError(403, "Order is not in this Ubuntu member book")
           }
 
+          await assertBscHashReusable(ubuntu, { paymentId: txHash, orderId })
+
           const amount = bookPaymentAmount(
             kind === "CARD" ? existing.total : kind === "FRACTION" ? existing.total_amount : existing.retail_price
           )
@@ -122,7 +125,8 @@ export const Route = createFileRoute("/api/payments/verify-bsc")({
           const unauthorized = message.includes("Invalid session") || message.includes("expired")
           const notFound = message.includes(BSC_TX_NOT_FOUND) || message.includes("not found")
           const conflict = message.includes("already") || message.includes("not pending") || message.includes("different Ubuntu")
-          return gateError(unauthorized ? 401 : notFound ? 404 : conflict ? 409 : 400, message)
+          const unavailable = message.includes("prod SELECT is required")
+          return gateError(unauthorized ? 401 : notFound ? 404 : conflict ? 409 : unavailable ? 503 : 400, message)
         }
       },
     },

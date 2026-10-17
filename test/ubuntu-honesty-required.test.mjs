@@ -35,6 +35,7 @@ const NS_TESTS = [
   "ubuntu-honesty-required.test.mjs",
   "ubuntu-marketplace-checkout-required.test.mjs",
   "ubuntu-process-parity-required.test.mjs",
+  "ubuntu-hash-reuse-required.test.mjs",
 ]
 
 test("Wave T memberLedger and pay-gate flags match named CARD/FRACTION opens", () => {
@@ -93,5 +94,5 @@ test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
   assert.match(isolation, /fgubaqoftdeefcakejwu/)
   assert.match(isolation, /Ubuntu client refuses Aureus project ref/)
   assert.match(isolation, /will not connect to Aureus production/)
-  assert.equal(pkg.version, "0.1.67")
+  assert.equal(pkg.version, "0.1.68")
 })

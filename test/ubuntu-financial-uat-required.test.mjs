@@ -36,5 +36,5 @@ test("financial UAT runner is Ubuntu-only dummy CARD or FRACTION path", {
   assert.match(source, /checkoutEnabled: false/)
   assert.doesNotMatch(source, /vercel --prod/)
   assert.doesNotMatch(source, /--with-data/)
-  assert.equal(pkg.version, "0.1.67")
+  assert.equal(pkg.version, "0.1.68")
 })

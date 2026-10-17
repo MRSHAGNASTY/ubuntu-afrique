@@ -102,5 +102,5 @@ test("process-parity routes attest then Johan approve on ua_* only", () => {
   assert.doesNotMatch(paystack, /persistMemberPaymentSettle/)
   assert.match(paystack, /admin-approve/)
   assert.match(nftOrder, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.67")
+  assert.equal(pkg.version, "0.1.68")
 })
