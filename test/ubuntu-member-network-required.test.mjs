@@ -71,7 +71,7 @@ test("independent legs: two ASMs under one personal leg count as one", () => {
   assert.equal(treeOne.sponsor.username, "upline")
   assert.equal(treeOne.directs.length, 1)
   assert.equal(treeOne.checkoutEnabled, false)
-  assert.equal(treeOne.marketplaceEnabled, false)
+  assert.equal(treeOne.marketplaceEnabled, true)
   assert.equal(treeOne.nftMarketplaceEnabled, false)
 
   const twoLegs = [
@@ -109,7 +109,7 @@ test("N1 network source stays on Ubuntu and refuses Aureus / origin write", () =
   assert.match(api, /resolveSessionMember/)
   assert.match(api, /getUbuntuServerClient/)
   assert.match(api, /checkoutEnabled: false/)
-  assert.match(api, /marketplaceEnabled: false/)
+  assert.match(api, /marketplaceEnabled: true/)
   assert.match(api, /nftMarketplaceEnabled: false/)
   assert.match(api, /nftAssetsEnabled: false/)
   assert.match(api, /nftListingEnabled: false/)

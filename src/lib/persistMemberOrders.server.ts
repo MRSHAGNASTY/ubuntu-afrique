@@ -77,7 +77,7 @@ export async function loadMemberOrders(ubuntu: SupabaseClient, userId: string | 
     userId: String(id),
     cards: cardOrders,
     fractions: fractionOrders,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftEnabled: false,
   }
 }

@@ -125,7 +125,7 @@ export function buildReport(input) {
     marketplaceSettlement: formatMoney2(settlementTotal),
     nftSalesCount: nftSales.length,
     checkoutEnabled: false,
-    marketplaceEnabled: false,
+    marketplaceEnabled: true,
     nftEnabled: false,
   }
 }

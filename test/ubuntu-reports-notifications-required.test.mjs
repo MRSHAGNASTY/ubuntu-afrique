@@ -76,7 +76,7 @@ test("report range and paid sales use fixed-point money", () => {
   assert.equal(report.gapPaid, "25.00")
   assert.equal(report.unclaimedGap, "0.00")
   assert.equal(report.nftSalesCount, 0)
-  assert.equal(report.marketplaceEnabled, false)
+  assert.equal(report.marketplaceEnabled, true)
   assert.equal(report.nftEnabled, false)
 })
 
@@ -97,5 +97,5 @@ test("Wave P sources stay on Ubuntu and do not write money", () => {
   assert.match(settle, /notificationForPayment/)
   assert.doesNotMatch(schema, /INSERT INTO public\.users/)
   assert.doesNotMatch(adminApi, /fgubaqoftdeefcakejwu/)
-  assert.equal(pkg.version, "0.1.70")
+  assert.equal(pkg.version, "0.1.71")
 })

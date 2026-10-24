@@ -89,5 +89,5 @@ test("login and ua-me write Ubuntu mirror, never Aureus", () => {
   assert.match(schema, /ua_aa_user_mirror/)
   assert.match(schema, /NEVER run on Aureus fgubaqoftdeefcakejwu/)
   assert.doesNotMatch(schema, /INSERT INTO public\.users/)
-  assert.equal(pkg.version, "0.1.70")
+  assert.equal(pkg.version, "0.1.71")
 })

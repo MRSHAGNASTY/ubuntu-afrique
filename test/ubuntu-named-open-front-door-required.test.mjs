@@ -41,5 +41,5 @@ test("Wave Z CARD and FRACTION buyer surfaces tell the named-open truth", () => 
   assert.match(fractionQuote, /marketplaceEnabled: true/)
   assert.match(fractionAvail, /marketplaceEnabled: true/)
   assert.match(nftOrder, /status: 403/)
-  assert.equal(pkg.version, "0.1.70")
+  assert.equal(pkg.version, "0.1.71")
 })

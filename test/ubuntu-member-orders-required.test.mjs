@@ -14,7 +14,7 @@ test("member orders read ua_card_orders and ua_fraction_transactions only", () =
   assert.doesNotMatch(persist, /ua_commissions/)
   assert.doesNotMatch(persist, /insert\(/)
   assert.doesNotMatch(persist, /fgubaqoftdeefcakejwu/)
-  assert.match(persist, /marketplaceEnabled: false/)
+  assert.match(persist, /marketplaceEnabled: true/)
   assert.match(persist, /nftEnabled: false/)
 })
 

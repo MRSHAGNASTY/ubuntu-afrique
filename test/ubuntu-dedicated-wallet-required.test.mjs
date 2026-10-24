@@ -46,5 +46,5 @@ test("initiate and verify-bsc 503 the shared Aureus wallet; NFT stays 403; no Sh
   assert.match(envExample, /Must not be live Aureus COMPANY_WALLET_BSC/)
   assert.doesNotMatch(envExample, /SHOPIFY/)
   assert.match(nft, /status: 403/)
-  assert.equal(pkg.version, "0.1.70")
+  assert.equal(pkg.version, "0.1.71")
 })

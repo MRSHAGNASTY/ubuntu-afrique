@@ -5,7 +5,7 @@ import { loadNetworkSnapshot } from "../../../lib/persistNetwork.server"
 
 const CLOSED_FLAGS = {
   checkoutEnabled: false,
-  marketplaceEnabled: false,
+  marketplaceEnabled: true,
   nftAssetsEnabled: false,
   nftListingEnabled: false,
   nftMarketplaceEnabled: false,

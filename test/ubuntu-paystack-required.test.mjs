@@ -120,5 +120,5 @@ test("Wave X Paystack leftover is not the till and keeps NFT 403", () => {
   assert.doesNotMatch(envExample, /NOWPAYMENTS/)
   assert.doesNotMatch(envExample, /SHOPIFY/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.70")
+  assert.equal(pkg.version, "0.1.71")
 })

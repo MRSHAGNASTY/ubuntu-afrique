@@ -4,7 +4,7 @@ import { countQualifiedLegs } from "./rankEngine.mjs"
 
 const CLOSED_FLAGS = Object.freeze({
   checkoutEnabled: false,
-  marketplaceEnabled: false,
+  marketplaceEnabled: true,
   nftAssetsEnabled: false,
   nftListingEnabled: false,
   nftMarketplaceEnabled: false,
