@@ -92,7 +92,7 @@ function InvestPage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Cards and Fractions</h1>
         <p className="mt-2 text-muted-foreground">
-          Named FRACTION checkout is open on this page. CARD checkout stays on the Cards page. Marketplace and NFT stay closed.
+          Named FRACTION checkout is open on this page. CARD checkout stays on the Cards page. Marketplace is named-open. NFT stays closed.
         </p>
 
         <section className="mt-10">

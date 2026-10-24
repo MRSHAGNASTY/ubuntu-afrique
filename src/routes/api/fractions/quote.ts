@@ -53,7 +53,7 @@ export const Route = createFileRoute("/api/fractions/quote")({
             phase,
             checkoutEnabled: true,
             fractionCheckoutEnabled: true,
-            marketplaceEnabled: false,
+            marketplaceEnabled: true,
             nftMarketplaceEnabled: false,
           })
         } catch (err) {

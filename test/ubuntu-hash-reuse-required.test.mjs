@@ -82,5 +82,5 @@ test("hash-reuse persist is Aureus SELECT only and verify-bsc attests after the 
   assert.doesNotMatch(verify, /aureus_share_purchases/)
   assert.doesNotMatch(verify, /shopify/i)
   assert.match(nft, /status: 403/)
-  assert.equal(pkg.version, "0.1.69")
+  assert.equal(pkg.version, "0.1.70")
 })

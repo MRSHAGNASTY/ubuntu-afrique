@@ -26,7 +26,7 @@ function fractionError(status: number, error: string) {
       checkoutEnabled: true,
       cardCheckoutEnabled: true,
       fractionCheckoutEnabled: true,
-      marketplaceEnabled: false,
+      marketplaceEnabled: true,
       nftMarketplaceEnabled: false,
     },
     { status }

@@ -145,5 +145,5 @@ test("Wave X-BSC routes settle ua_* only and keep NFT 403", () => {
   assert.doesNotMatch(envExample, /NOWPAYMENTS/)
   assert.doesNotMatch(envExample, /SHOPIFY/)
   assert.match(publicNft, /Public checkout is not open/)
-  assert.equal(pkg.version, "0.1.69")
+  assert.equal(pkg.version, "0.1.70")
 })

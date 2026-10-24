@@ -44,7 +44,7 @@ export const Route = createFileRoute("/api/fractions/availability")({
             phase,
             checkoutEnabled: true,
             fractionCheckoutEnabled: true,
-            marketplaceEnabled: false,
+            marketplaceEnabled: true,
             nftMarketplaceEnabled: false,
           })
         } catch (err) {

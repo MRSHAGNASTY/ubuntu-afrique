@@ -37,6 +37,7 @@ const NS_TESTS = [
   "ubuntu-process-parity-required.test.mjs",
   "ubuntu-hash-reuse-required.test.mjs",
   "ubuntu-dedicated-wallet-required.test.mjs",
+  "ubuntu-named-open-front-door-required.test.mjs",
 ]
 
 test("Wave T memberLedger and pay-gate flags match named CARD/FRACTION opens", () => {
@@ -65,7 +66,7 @@ test("Wave T CARD/FRACTION pages stay named-open and marketplace/NFT stay 403", 
     assert.doesNotMatch(source, /Checkout is not open/)
     assert.doesNotMatch(source, /fgubaqoftdeefcakejwu/)
   }
-  assert.match(cards, /Named open: CARD only|Public CARD checkout/)
+  assert.match(cards, /Named open: CARD, FRACTION, and MARKETPLACE|Public CARD checkout/)
   assert.match(invest, /Named FRACTION checkout is open/)
   assert.match(pay, /Pay CARD, FRACTION, or MARKETPLACE/)
   assert.match(publicMarket, /persistPendingMarketplaceOrder/)
@@ -95,5 +96,5 @@ test("Wave T N-S tests, isolation, and preview smoke stay listed", () => {
   assert.match(isolation, /fgubaqoftdeefcakejwu/)
   assert.match(isolation, /Ubuntu client refuses Aureus project ref/)
   assert.match(isolation, /will not connect to Aureus production/)
-  assert.equal(pkg.version, "0.1.69")
+  assert.equal(pkg.version, "0.1.70")
 })

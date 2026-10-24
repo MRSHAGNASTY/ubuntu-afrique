@@ -1,62 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowRight, Clock, Coins, TrendingUp, Users, Trophy, Flame, Mountain, Zap, Droplet, ShieldCheck, Factory, Calculator, Lock, Info } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
-
-// Fixed offering end date — 30 day window
-const OFFERING_END = new Date("2026-08-18T23:59:59Z").getTime();
-
-function useCountdown(target: number) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const diff = Math.max(0, target - now);
-  const days = Math.floor(diff / 86400000);
-  const hours = Math.floor((diff / 3600000) % 24);
-  const minutes = Math.floor((diff / 60000) % 60);
-  const seconds = Math.floor((diff / 1000) % 60);
-  return { days, hours, minutes, seconds };
-}
-
-function CountdownTimer({ compact = false }: { compact?: boolean }) {
-  const { days, hours, minutes, seconds } = useCountdown(OFFERING_END);
-  const units = [
-    { label: "Days", value: days },
-    { label: "Hours", value: hours },
-    { label: "Minutes", value: minutes },
-    { label: "Seconds", value: seconds },
-  ];
-  return (
-    <div
-      className={`grid grid-cols-4 gap-2 ${
-        compact ? "max-w-md" : "max-w-xl"
-      }`}
-    >
-      {units.map((u) => (
-        <div
-          key={u.label}
-          className="rounded-xl border border-gold/30 bg-gold/5 px-3 py-4 text-center backdrop-blur hover-lift sheen"
-        >
-          <div
-            className={`font-display font-bold text-gold tabular-nums ${
-              compact ? "text-2xl" : "text-4xl md:text-5xl"
-            }`}
-          >
-            {String(u.value).padStart(2, "0")}
-          </div>
-          <div className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-            {u.label}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function Index() {
   return (
@@ -90,15 +38,11 @@ function Header() {
           </span>
         </a>
         <nav className="hidden gap-8 md:flex">
-          {["Mine", "Offering", "Dividends", "Affiliate", "Contact"].map((l) => (
-            <a
-              key={l}
-              href={`#${l.toLowerCase()}`}
-              className="text-sm text-muted-foreground transition-colors hover:text-gold"
-            >
-              {l}
-            </a>
-          ))}
+          <a href="#mine" className="text-sm text-muted-foreground transition-colors hover:text-gold">Mine</a>
+          <a href="#offering" className="text-sm text-muted-foreground transition-colors hover:text-gold">Offering</a>
+          <a href="/dashboard/cards" className="text-sm text-muted-foreground transition-colors hover:text-gold">Cards</a>
+          <a href="/dashboard/invest" className="text-sm text-muted-foreground transition-colors hover:text-gold">Fractions</a>
+          <a href="/marketplace" className="text-sm text-muted-foreground transition-colors hover:text-gold">Marketplace</a>
         </nav>
         <a
           href="/auth/login"
@@ -124,36 +68,36 @@ function Hero() {
       <div className="relative mx-auto grid max-w-7xl gap-16 px-6 py-24 md:grid-cols-2 md:py-32">
         <div className="reveal-up">
           <span className="inline-flex items-center gap-2 rounded-full bg-gold/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold ring-1 ring-gold/30">
-            <Flame className="h-3.5 w-3.5 animate-pulse" /> 30 Days Only
+            <Flame className="h-3.5 w-3.5 animate-pulse" /> Named open
           </span>
           <h1 className="mt-6 font-display text-5xl font-bold leading-[1.05] md:text-7xl">
             Own a Piece of
             <span className="block text-shimmer">Ubuntu Afrique.</span>
           </h1>
           <p className="mt-6 max-w-lg text-lg text-muted-foreground">
-            Ubuntu Afrique on the existing Aureus foundation: Corporate Differential Gap Cover,
-            then Cards, $10 Fractions, Marketplace, and NFT records. Fraction purchase is Coming Soon.
+            Ubuntu Afrique on its own book: Corporate Differential Gap Cover, then named-open
+            Cards, $10 Fractions, and Marketplace. NFT records stay closed until 1,400,000
+            Aureus shares are sold and named.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <a
-              href="/auth/register"
+              href="/dashboard/invest"
               className="inline-flex items-center gap-2 rounded-md bg-gold-gradient px-6 py-3 font-semibold text-primary-foreground shadow-[var(--shadow-gold)] transition-transform hover:-translate-y-0.5 glow-gold sheen"
             >
-              Get Started <ArrowRight className="h-4 w-4" />
+              Buy $10 Fractions <ArrowRight className="h-4 w-4" />
             </a>
             <a
-              href="/auth/login"
+              href="/dashboard/cards"
               className="inline-flex items-center gap-2 rounded-md border border-gold/50 px-6 py-3 font-semibold text-gold transition-colors hover:bg-gold/10 sheen"
             >
-              Sign In
+              Buy a Card
             </a>
-          </div>
-
-          <div className="mt-10">
-            <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-gold">
-              Offering Closes In
-            </div>
-            <CountdownTimer />
+            <a
+              href="/marketplace"
+              className="inline-flex items-center gap-2 rounded-md border border-gold/50 px-6 py-3 font-semibold text-gold transition-colors hover:bg-gold/10 sheen"
+            >
+              Marketplace
+            </a>
           </div>
 
           <div className="mt-10 grid grid-cols-3 gap-6 border-t border-border pt-8">
@@ -181,7 +125,7 @@ function Hero() {
               <SnapshotRow label="Phase 10 Basis" value="$100 / full share" muted />
               <SnapshotRow label="Fraction Price" value="$10" highlight />
               <SnapshotRow label="Original Liability" value="$10,000,000" />
-              <SnapshotRow label="Commerce modules" value="Coming Soon" />
+              <SnapshotRow label="Commerce modules" value="CARD · FRACTION · MARKETPLACE open" />
             </div>
 
             <div className="mt-8 rounded-xl bg-gold/10 p-5 ring-1 ring-gold/20">
@@ -267,10 +211,10 @@ function OfferingSection() {
           />
           <OfferingCard
             step="03"
-            title="Later Modules"
-            equation="Cards · Marketplace · NFT"
-            result="Coming Soon"
-            note="NFT production trading stays off until all 1,400,000 Aureus shares are sold."
+            title="Named-open modules"
+            equation="Cards · $10 Fractions · Marketplace"
+            result="Open"
+            note="NFT production trading stays off until all 1,400,000 Aureus shares are sold and named."
           />
         </div>
       </div>
@@ -359,7 +303,7 @@ function AffiliateSection() {
               tag="VP"
               title="Vice President"
               percent="25%"
-              description="Maximum standard Gap Cover. Cards, Fractions, Marketplace, and NFT: Coming Soon."
+              description="Maximum standard Gap Cover. Cards, Fractions, and Marketplace are named-open. NFT stays Coming Soon."
             />
           </div>
         </div>
@@ -410,31 +354,35 @@ function CTASection() {
     <section id="contact" className="border-t border-border bg-surface/40 py-24">
       <div className="mx-auto max-w-4xl px-6 text-center">
         <span className="text-xs font-semibold uppercase tracking-widest text-gold">
-          Limited Window
+          Named-open commerce
         </span>
         <h2 className="mt-4 font-display text-4xl font-bold md:text-6xl">
           100,000 Shares. $10 Fractions.
-          <span className="block text-gold">One Opportunity.</span>
+          <span className="block text-gold">Cards and Marketplace open.</span>
         </h2>
         <p className="mx-auto mt-6 max-w-xl text-muted-foreground">
-          Secure your fractional stake in Ubuntu Afrique before the window closes.
+          Buy a $10 fraction, a card, or a marketplace order on the Ubuntu book. Send USDT on BSC,
+          paste the hash, then Johan Verify & Approve. This does not mint Aureus shares. NFT stays closed.
         </p>
-        <div className="mt-10 flex justify-center">
-          <CountdownTimer />
-        </div>
 
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <a
-            href="/auth/register"
+            href="/dashboard/invest"
             className="inline-flex items-center gap-2 rounded-md bg-gold-gradient px-8 py-4 font-semibold text-primary-foreground shadow-[var(--shadow-gold)] transition-transform hover:-translate-y-0.5 glow-gold sheen"
           >
-            Reserve Shares <ArrowRight className="h-4 w-4" />
+            Buy $10 Fractions <ArrowRight className="h-4 w-4" />
           </a>
           <a
-            href="/auth/register"
+            href="/dashboard/cards"
             className="inline-flex items-center gap-2 rounded-md border border-gold/50 px-8 py-4 font-semibold text-gold transition-colors hover:bg-gold/10 sheen"
           >
-            Join Affiliate Program
+            Buy a Card
+          </a>
+          <a
+            href="/marketplace"
+            className="inline-flex items-center gap-2 rounded-md border border-gold/50 px-8 py-4 font-semibold text-gold transition-colors hover:bg-gold/10 sheen"
+          >
+            Marketplace
           </a>
         </div>
       </div>

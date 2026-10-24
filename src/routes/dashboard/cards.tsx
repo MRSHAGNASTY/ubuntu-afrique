@@ -71,10 +71,10 @@ function CardCheckoutPage() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display text-3xl font-bold">Public CARD checkout</h1>
         <p className="mt-2 text-muted-foreground">
-          Named open: CARD only. After pending, the Ubuntu member payment gate opens. NFT stays closed.
+          Named open: CARD, FRACTION, and MARKETPLACE. This page places a CARD. After pending, paste the BSC USDT hash. Johan Verify & Approve settles the Ubuntu book. NFT stays closed.
         </p>
         <p className="mt-2 text-sm text-gold/80">
-          Creates PENDING_PAYMENT, then opens /dashboard/pay for Ubuntu staging PSP.
+          Creates PENDING_PAYMENT, then opens /dashboard/pay for the Ubuntu BSC hash till.
         </p>
         <label className="mt-8 block text-sm">
           Quantity

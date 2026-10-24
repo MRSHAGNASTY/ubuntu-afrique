@@ -1,0 +1,45 @@
+import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
+import { test } from "node:test"
+
+const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"))
+const landing = readFileSync(new URL("../src/routes/index.tsx", import.meta.url), "utf8")
+const cards = readFileSync(new URL("../src/routes/dashboard/cards.tsx", import.meta.url), "utf8")
+const invest = readFileSync(new URL("../src/routes/dashboard/invest.tsx", import.meta.url), "utf8")
+const cardOrder = readFileSync(new URL("../src/routes/api/cards/order.ts", import.meta.url), "utf8")
+const fractionOrder = readFileSync(new URL("../src/routes/api/fractions/order.ts", import.meta.url), "utf8")
+const fractionQuote = readFileSync(new URL("../src/routes/api/fractions/quote.ts", import.meta.url), "utf8")
+const fractionAvail = readFileSync(new URL("../src/routes/api/fractions/availability.ts", import.meta.url), "utf8")
+const nftOrder = readFileSync(new URL("../src/routes/api/nft/order.ts", import.meta.url), "utf8")
+
+test("Wave Z public landing names CARD FRACTION MARKETPLACE open and NFT closed", () => {
+  assert.doesNotMatch(landing, /Fraction purchase is Coming Soon/)
+  assert.doesNotMatch(landing, /30 Days Only/)
+  assert.doesNotMatch(landing, /Offering Closes In/)
+  assert.doesNotMatch(landing, /Limited Window/)
+  assert.match(landing, /Buy \$10 Fractions/)
+  assert.match(landing, /Buy a Card/)
+  assert.match(landing, /href="\/dashboard\/invest"/)
+  assert.match(landing, /href="\/dashboard\/cards"/)
+  assert.match(landing, /href="\/marketplace"/)
+  assert.match(landing, /CARD · FRACTION · MARKETPLACE open/)
+  assert.match(landing, /NFT stays Coming Soon|NFT stays closed|NFT records stay closed/)
+  assert.match(landing, /does not mint Aureus shares/)
+  assert.doesNotMatch(landing, /fgubaqoftdeefcakejwu/)
+})
+
+test("Wave Z CARD and FRACTION buyer surfaces tell the named-open truth", () => {
+  assert.match(cards, /Named open: CARD, FRACTION, and MARKETPLACE/)
+  assert.doesNotMatch(cards, /Named open: CARD only/)
+  assert.doesNotMatch(cards, /staging PSP/)
+  assert.match(cards, /BSC hash till|BSC USDT hash/)
+  assert.match(invest, /Named FRACTION checkout is open/)
+  assert.match(invest, /Marketplace is named-open/)
+  assert.doesNotMatch(invest, /Marketplace and NFT stay closed/)
+  assert.match(cardOrder, /marketplaceEnabled: true/)
+  assert.match(fractionOrder, /marketplaceEnabled: true/)
+  assert.match(fractionQuote, /marketplaceEnabled: true/)
+  assert.match(fractionAvail, /marketplaceEnabled: true/)
+  assert.match(nftOrder, /status: 403/)
+  assert.equal(pkg.version, "0.1.70")
+})
